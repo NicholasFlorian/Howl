@@ -10,13 +10,13 @@ import android.widget.TextView;
 import com.teamhowl.howl.models.User;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.teamhowl.howl.R;
 
 public class UserAdapter extends ArrayAdapter<User> {
 
-    public UserAdapter(Context context, ArrayList<User> users) {
-
+    public UserAdapter(Context context, List<User> users) {
         super(context, 0, users);
     }
 
