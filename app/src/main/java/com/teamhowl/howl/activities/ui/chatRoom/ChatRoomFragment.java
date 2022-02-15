@@ -24,8 +24,8 @@ public class ChatRoomFragment extends Fragment {
         binding = FragmentChatRoomBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textHome;
-        chatRoomViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        //final TextView textView = binding.textHome;
+        //chatRoomViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 
