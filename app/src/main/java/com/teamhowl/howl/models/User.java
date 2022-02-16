@@ -18,5 +18,5 @@ public class User {
     }
 
     public String getUserName(){ return userName; }
-    public String getChatId(){ return userName; }
+    public String getChatId(){ return chatId; }
 }

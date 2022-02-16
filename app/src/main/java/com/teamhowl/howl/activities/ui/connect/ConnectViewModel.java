@@ -25,24 +25,17 @@ public class ConnectViewModel extends ViewModel {
         //super(application);
 
         connectUsers = new MediatorLiveData<>();
+
         // set by default null, until we get data from the database.
         connectUsers.setValue(null);
-
         LiveData<ArrayList<User>> users = null;//mRepository.getProducts();
 
         // observe the changes of the products from the database and forward them
         connectUsers.addSource(users, connectUsers::setValue);
     }
 
-    /**
-     * Expose the LiveData Products query so the UI can observe it.
-     */
     public LiveData<ArrayList<User>> getUsers() {
         return connectUsers;
     }
-
-    //public LiveData<ArrayList<User>> refreshUsers(String query) {
-    //    return users;
-    //}
 
 }
