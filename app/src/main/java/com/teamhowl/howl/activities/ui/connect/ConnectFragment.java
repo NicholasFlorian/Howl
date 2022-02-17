@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.FragmentConnectBinding;
 import com.teamhowl.howl.models.User;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 
 import java.util.Set;
@@ -38,16 +40,36 @@ public class ConnectFragment extends Fragment {
 
         binding = FragmentConnectBinding.inflate(inflater, container, false);
 
+        // Create list view functionality
         users = new ArrayList<>();
         userAdapter = new UserAdapter(getContext(), users);
         userListView = binding.connectListView;
         userListView.setAdapter(userAdapter);
+        userListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
+            // then pressed A create dialog for connecting to another device
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                requestConnection(userAdapter.getItem((int)id));
+            }
+        });
+
+        // Start Bluetooth features
+        startBluetoothDiscovery();
+
+        return binding.getRoot();
+    }
+
+    public void startBluetoothDiscovery(){
+
+        // Connect to Bluetooth
         try {
+
+            // Show avaiable device to pair with
             BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             bluetoothAdapter.startDiscovery();
 
-            BroadcastReceiver mReceiver = new BroadcastReceiver() {
+            BroadcastReceiver receiver = new BroadcastReceiver() {
                 public void onReceive(Context context, Intent intent) {
                     String action = intent.getAction();
 
@@ -57,21 +79,45 @@ public class ConnectFragment extends Fragment {
                         BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                         userAdapter.add(new User(
                                 device.getName(),
+                                bluetoothAdapter.getAddress(),
                                 device.getAddress()));
                     }
                 }
             };
 
             IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            getContext().registerReceiver(mReceiver, filter);
-
-            Toast.makeText(getContext(), "SCAN COMPLETE", Toast.LENGTH_LONG).show();
+            getContext().registerReceiver(receiver, filter);
         }
         catch(SecurityException e) {
+
             Toast.makeText(getContext(), "SCAN FAILED \n" + e.toString(), Toast.LENGTH_LONG).show();
         }
 
-        return binding.getRoot();
+        // Make the device discoverable
+        Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+        startActivity(discoverableIntent);
+    }
+
+    public void requestConnection(User user){
+
+        try{
+
+            Class class1 = Class.forName("android.bluetooth.BluetoothDevice");
+            Method createBondMethod = class1.getMethod("createBond");
+            Boolean returnValue = (Boolean) createBondMethod.invoke(btDevice);
+            return returnValue.booleanValue();
+
+        }
+        catch(SecurityException e) {
+
+            Toast.makeText(getContext(), "SCAN FAILED \n" + e.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void createChatRoom(User user){
+
+
     }
 
     @Override

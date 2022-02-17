@@ -22,22 +22,22 @@ public class SplashScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_spash_screen);
 
+        // Check location permission is already granted
         boolean hasPermissionLocation = (ContextCompat.checkSelfPermission(getApplicationContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION ) == PackageManager.PERMISSION_GRANTED);
 
-        String[] permissions = {
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        };
-
+        // Get location permission as per new Android Bluetooth standards
         if (!hasPermissionLocation) {
             ActivityCompat.requestPermissions(
                     this,
-                    permissions,
+                    new String[] {
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION},
                     ACCESS_LOCATION);
         }
         else{
 
+            // If granted, load the home activity
             loadHomeActivity();
         }
     }
@@ -51,6 +51,7 @@ public class SplashScreen extends AppCompatActivity {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Toast.makeText(this, "PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
 
+                    // If granted, load the home activity
                     loadHomeActivity();
                 } else {
                     Toast.makeText(this, "PERMISSION DENIED", Toast.LENGTH_LONG).show();
