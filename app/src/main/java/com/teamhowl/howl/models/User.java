@@ -1,28 +1,25 @@
 package com.teamhowl.howl.models;
 
+import android.bluetooth.BluetoothDevice;
+
 public class User {
 
     private String userName;
-    private String macAddress;
     private String userId;
     private String chatId;
+    private BluetoothDevice device;
 
-    public User(String userName, String chatId){
+    public User(BluetoothDevice device) throws SecurityException{
 
-        this.userName = userName;
-        this.chatId = chatId;
-    }
-
-    public User(String userName, String localMacAddress, String foreignMacAddress){
-
-        this.userName = userName;
-        this.macAddress = foreignMacAddress;
-        this.userId = "";
-        this.chatId = "";
+        this.userName = device.getName();
+        this.userId = "USER_ID";
+        this.chatId = "CHAT_ID";
+        this.device = device;
     }
 
     public String getUserName(){ return userName; }
-    public String getMacAddress(){ return macAddress; }
+    public String getMacAddress() throws SecurityException{ return device.getName(); }
     public String getUserId(){ return userId; }
     public String getChatId(){ return chatId; }
+    public BluetoothDevice getDevice(){ return device; }
 }

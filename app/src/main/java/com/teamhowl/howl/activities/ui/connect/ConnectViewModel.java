@@ -21,8 +21,8 @@ public class ConnectViewModel extends ViewModel {
 
     private MediatorLiveData<ArrayList<User>> connectUsers;
 
-    public ConnectViewModel(Application application) {
-        //super(application);
+    public ConnectViewModel(ConnectFragment application) {
+        super();
 
         connectUsers = new MediatorLiveData<>();
 

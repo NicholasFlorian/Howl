@@ -31,6 +31,9 @@ public class SplashScreen extends AppCompatActivity {
             ActivityCompat.requestPermissions(
                     this,
                     new String[] {
+                            Manifest.permission.BLUETOOTH_ADMIN,
+                            Manifest.permission.BLUETOOTH_SCAN,
+                            Manifest.permission.BLUETOOTH_CONNECT,
                             Manifest.permission.ACCESS_COARSE_LOCATION,
                             Manifest.permission.ACCESS_FINE_LOCATION},
                     ACCESS_LOCATION);
@@ -38,7 +41,8 @@ public class SplashScreen extends AppCompatActivity {
         else{
 
             // If granted, load the home activity
-            loadHomeActivity();
+            Intent myIntent = new Intent(this,Home.class);
+            this.startActivity(myIntent);
         }
     }
 
@@ -52,20 +56,15 @@ public class SplashScreen extends AppCompatActivity {
                     Toast.makeText(this, "PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
 
                     // If granted, load the home activity
-                    loadHomeActivity();
-                } else {
+                    Intent myIntent = new Intent(this,Home.class);
+                    this.startActivity(myIntent);
+                }
+                else {
+
                     Toast.makeText(this, "PERMISSION DENIED", Toast.LENGTH_LONG).show();
                 }
             }
         }
-    }
-
-    public void loadHomeActivity(){
-
-        // Load home activity.
-        finish();
-        Intent myIntent = new Intent(this,Home.class);
-        this.startActivity(myIntent);
     }
 
 }
