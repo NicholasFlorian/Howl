@@ -20,6 +20,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Howl">
 
+        <service
+            android:name="com.teamhowl.howl.utilities.BluetoothService"
+            android:exported="false">
+        </service>
+
         <activity
             android:name=".activities.SplashScreen"
             android:exported="true">

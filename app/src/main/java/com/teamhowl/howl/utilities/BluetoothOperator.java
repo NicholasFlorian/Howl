@@ -1,47 +1,40 @@
 package com.teamhowl.howl.utilities;
 
-import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
-import android.nfc.Tag;
 import android.os.ParcelUuid;
 import android.util.Log;
-
-import com.teamhowl.howl.activities.ui.connect.ConnectFragment;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 public class BluetoothOperator {
-
     private static final String TAG = "HOWL :: BluetoothOperator";
 
-    // Bluetooth service information
+    /** Bluetooth service information */
     private static final String SERVICE_SECURE = "SERVICE_SECURE";
     private static final String SERVICE_INSECURE = "SERVICE_INSECURE";
     private static final UUID UUID_SECURE =
-        //ParcelUuid.fromString("fa87c0d0-afac-11de-8a39-0800200c9a66").getUuid();
         ParcelUuid.fromString("00001101-0000-1000-8000-00805F9B34FB").getUuid();
     private static final UUID UUID_INSECURE =
-        //ParcelUuid.fromString("8ce255c0-200a-11e0-ac64-0800200c9a66").getUuid();
         ParcelUuid.fromString("00001101-0000-1000-8000-00805F9B34FB").getUuid();
 
-    // Thread states
+    /** Thread states */
     public static final int STATE_NONE = 0;       // we're doing nothing
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
-    // Bluetooth adapter
+
+    /** Bluetooth adapter */
     private BluetoothAdapter adapter;
 
-    // Threads and their state
+    /** Bluetooth operation threads and their state */
     private ConnectThread connectThread;
     private ConnectedThread connectedThread;
     private AcceptThread acceptThread;
@@ -58,54 +51,9 @@ public class BluetoothOperator {
         updateState(STATE_NONE);
     }
 
-    public void startDiscovery() throws SecurityException {
-
-        adapter.startDiscovery();
-    }
-
-    private void updateState(int newState){
-
-        Log.d(TAG, "Updating state of operator.");
-        String stateString = "";
-
-        switch(newState){
-
-            case STATE_NONE:
-                stateString = "None";
-                break;
-            case STATE_LISTEN:
-                stateString = "Listen";
-                break;
-            case STATE_CONNECTING:
-                stateString = "Connecting";
-                break;
-            case STATE_CONNECTED:
-                stateString = "Connected";
-                break;
-            default:
-                stateString = "Unknown";
-        }
-
-        Log.d(TAG, "State : " + stateString);
-
-        if(acceptThread != null)
-            Log.d(TAG, "Accept Thread Status : " + acceptThread.getState());
-        else
-            Log.d(TAG, "Accept Thread Status : null");
-
-        if(connectThread != null)
-            Log.d(TAG, "Connect Thread Status : " + connectThread.getState());
-        else
-            Log.d(TAG, "Connect Thread Status : null");
-
-        if(connectedThread != null)
-            Log.d(TAG, "Connected Thread Status : " + connectedThread.getState());
-        else
-            Log.d(TAG, "Connected Thread Status : null");
-
-        currentState = newState;
-    }
-    
+    /** Status Operations
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     */
     public synchronized void start() {
         Log.d(TAG, "start");
 
@@ -154,7 +102,53 @@ public class BluetoothOperator {
         //updateUserInterfaceTitle();
     }
 
-    public synchronized void connect(BluetoothDevice device, boolean secure) {
+    private void updateState(int newState){
+
+        String stateString = "";
+
+        switch(newState){
+
+            case STATE_NONE:
+                stateString = "None";
+                break;
+            case STATE_LISTEN:
+                stateString = "Listen";
+                break;
+            case STATE_CONNECTING:
+                stateString = "Connecting";
+                break;
+            case STATE_CONNECTED:
+                stateString = "Connected";
+                break;
+            default:
+                stateString = "Unknown";
+        }
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+        Log.d(TAG, "Updating state of operator.");
+        Log.d(TAG, "State : " + stateString);
+
+        if(acceptThread != null)
+            Log.d(TAG, "Accept Thread Status : " + acceptThread.getState());
+        else
+            Log.d(TAG, "Accept Thread Status : null");
+
+        if(connectThread != null)
+            Log.d(TAG, "Connect Thread Status : " + connectThread.getState());
+        else
+            Log.d(TAG, "Connect Thread Status : null");
+
+        if(connectedThread != null)
+            Log.d(TAG, "Connected Thread Status : " + connectedThread.getState());
+        else
+            Log.d(TAG, "Connected Thread Status : null");
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+
+        currentState = newState;
+    }
+
+    private synchronized void connect(BluetoothDevice device, boolean secure) {
 
         Log.d(TAG, "connect to: " + device);
 
@@ -250,7 +244,7 @@ public class BluetoothOperator {
         this.start();
     }
 
-    public void write(byte[] out) {
+    private void write(byte[] out) {
         // Create temporary object
         ConnectedThread r;
         // Synchronize a copy of the ConnectedThread
@@ -262,13 +256,24 @@ public class BluetoothOperator {
         r.write(out);
     }
 
+    /** Main Intent Operations
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     */
+
+    public void startDiscovery() throws SecurityException {
+
+        adapter.startDiscovery();
+    }
+
+    public boolean isDiscovering() throws SecurityException {
+
+        return adapter.isDiscovering();
+    }
+
     public void createChatRoom(BluetoothDevice device){
 
         // Establish a connection first
         connect(device, false);
-
-        // Exchange information needed for creating a chatroom
-
     }
 
     public void exchangeMessages(BluetoothDevice device){
@@ -278,6 +283,10 @@ public class BluetoothOperator {
 
         // Exchange messages
     }
+
+    /** Local Threads for Bluetooth operation
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    */
 
     private class AcceptThread extends Thread {
 
@@ -291,7 +300,7 @@ public class BluetoothOperator {
 
             BluetoothServerSocket temp = null;
 
-            // Create a new listening server socket
+             // Create a new listening server socket
             try {
                 if (secure) {
                     temp = adapter.listenUsingRfcommWithServiceRecord(
@@ -522,6 +531,9 @@ public class BluetoothOperator {
             byte[] buffer = new byte[1024];
             int bytes;
 
+            // Exchange information needed for creating a chatroom
+            write("TESTING WRITING TO OTHER DEVICES ->".getBytes(StandardCharsets.UTF_8));
+
             // Keep listening to the InputStream while connected
             while (currentState == STATE_CONNECTED) {
 
@@ -535,7 +547,7 @@ public class BluetoothOperator {
                     // handler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
                     //        .sendToTarget();
 
-                    Log.d(TAG, "HOLY SHIET BOY, " + buffer.toString());
+                    Log.d(TAG, "RECEIVED: " + new String(buffer, StandardCharsets.UTF_8));
                 }
                 catch (IOException e) {
 
@@ -550,6 +562,7 @@ public class BluetoothOperator {
 
             try {
                 outputStream.write(buffer);
+                outputStream.flush();
 
                 // Share the sent message back to the UI Activity TODO update handler
                 //mHandler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer)
