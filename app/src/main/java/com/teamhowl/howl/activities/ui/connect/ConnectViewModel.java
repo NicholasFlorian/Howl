@@ -4,6 +4,7 @@ import android.app.Application;
 import android.widget.ListView;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -17,25 +18,20 @@ import com.teamhowl.howl.models.User;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConnectViewModel extends ViewModel {
+public class ConnectViewModel extends AndroidViewModel {
 
-    private MediatorLiveData<ArrayList<User>> connectUsers;
+    private MutableLiveData<ArrayList<User>> localUsersObservable;
 
     public ConnectViewModel(Application application) {
-        //super(application);
+        super(application);
 
-        connectUsers = new MediatorLiveData<>();
-
-        // set by default null, until we get data from the database.
-        connectUsers.setValue(null);
-        LiveData<ArrayList<User>> users = null;//mRepository.getProducts();
-
-        // observe the changes of the products from the database and forward them
-        connectUsers.addSource(users, connectUsers::setValue);
+        localUsersObservable = new MutableLiveData<>();
+        localUsersObservable.setValue(null); // todo get local devices
     }
 
-    public LiveData<ArrayList<User>> getUsers() {
-        return connectUsers;
+    public LiveData<ArrayList<User>> getLocalUsersObservable() {
+
+        return localUsersObservable;
     }
 
 }

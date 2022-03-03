@@ -16,12 +16,11 @@ import com.teamhowl.howl.R;
 
 public class UserAdapter extends ArrayAdapter<User> {
 
-    public UserAdapter(Context context, List<User> users) {
-        super(context, 0, users);
+    public UserAdapter(Context context) {
+        super(context, 0);
     }
 
     @Override
-
     public View getView(int position, View convertView, ViewGroup parent) {
 
         // Get the data item for this position
@@ -46,5 +45,11 @@ public class UserAdapter extends ArrayAdapter<User> {
 
         // Return the completed view to render on screen
         return convertView;
+    }
+
+    public void setUsers(ArrayList<User> users){
+
+        this.clear();
+        this.addAll(users);
     }
 }

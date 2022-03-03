@@ -9,7 +9,6 @@ public class ChatRoom {
     //    this.user = User(chatId);
     //}
 
-
     public void refresh(){}
     public BlockChain getChain(){ return blockChain; }
 }
