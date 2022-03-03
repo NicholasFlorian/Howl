@@ -23,21 +23,15 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.FragmentConnectBinding;
 import com.teamhowl.howl.models.User;
-import com.teamhowl.howl.utilities.BluetoothOperator;
 import com.teamhowl.howl.utilities.BluetoothService;
 
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-
-import java.util.Set;
 
 public class ConnectFragment extends Fragment {
 
@@ -232,7 +226,7 @@ public class ConnectFragment extends Fragment {
             0);
 
         Bundle bundle = new Bundle();
-        bundle.putParcelable(BluetoothService.KEY_DEVICE, device);
+        bundle.putParcelable(BluetoothService.KEY_SERVICE_DEVICE, device);
 
         message.setData(bundle);
 
