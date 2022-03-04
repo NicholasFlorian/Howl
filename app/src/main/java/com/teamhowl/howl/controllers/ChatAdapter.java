@@ -40,7 +40,7 @@ public class ChatAdapter extends ArrayAdapter<ChatRoom> {
         //TextView chatId = (TextView) convertView.findViewById(R.id.connect_chat_id);
 
         // Populate the data into the template view using the data object
-        //userName.setText(user.getUserName());
+        //userName.setText(chatRoom.user.getUserName());
         //chatId.setText(user.getChatId());
 
         // Return the completed view to render on screen
