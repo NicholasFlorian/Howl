@@ -5,10 +5,21 @@ public class ChatRoom {
     private User user;
     private BlockChain blockChain;
 
-    //public ChatRoom(String chatId){
-    //    this.user = User(chatId);
-    //}
+    public ChatRoom(User user){
 
-    public void refresh(){}
-    public BlockChain getChain(){ return blockChain; }
+        this.user = user;
+        this.blockChain = new BlockChain(user.getChatId());
+    }
+
+    public void refresh(){
+        //on database changed (pendingblocks/stashedBlocks?);
+    }
+
+    public User getUser(){
+        return user;
+    }
+
+    public BlockChain getChain(){
+        return blockChain;
+    }
 }

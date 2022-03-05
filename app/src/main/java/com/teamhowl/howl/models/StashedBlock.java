@@ -19,4 +19,30 @@ public class StashedBlock {
 
     @ColumnInfo(name = "time_received")
     private Date timeReceived;
+
+
+    public StashedBlock(String chatId, String encryptedBlock, Date timeReceived) {
+
+        this.id = id;
+        this.chatId = chatId;
+        this.encryptedBlock = encryptedBlock;
+        this.timeReceived = timeReceived;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getChatId() {
+        return chatId;
+    }
+
+    public String getEncryptedBlock() {
+        return encryptedBlock;
+    }
+
+    public Date getTimeReceived() {
+        return timeReceived;
+    }
+
 }

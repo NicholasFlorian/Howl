@@ -33,8 +33,19 @@ public class User {
         this.device = device;
     }
 
-    public String getChatId(){ return chatId; }
-    public String getUserName(){ return userName; }
-    public String getMacAddress() throws SecurityException{ return device.getName(); }
-    public BluetoothDevice getDevice(){ return device; }
+    public String getChatId(){
+        return chatId;
+    }
+
+    public String getUserName(){
+        return userName;
+    }
+
+    public String getMacAddress() throws SecurityException{
+        return device.getName();
+    }
+
+    public BluetoothDevice getDevice(){
+        return device;
+    }
 }

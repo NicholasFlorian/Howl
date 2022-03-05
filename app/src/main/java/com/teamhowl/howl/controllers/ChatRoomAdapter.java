@@ -15,8 +15,8 @@ import java.util.List;
 
 import com.teamhowl.howl.R;
 
-public class ChatAdapter extends ArrayAdapter<ChatRoom> {
-    public ChatAdapter(Context context, List<ChatRoom> chatRooms) {
+public class ChatRoomAdapter extends ArrayAdapter<ChatRoom> {
+    public ChatRoomAdapter(Context context, List<ChatRoom> chatRooms) {
         super(context, 0, chatRooms);
     }
 

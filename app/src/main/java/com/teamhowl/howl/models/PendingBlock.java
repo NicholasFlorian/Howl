@@ -19,10 +19,23 @@ public class PendingBlock {
     @ColumnInfo(name = "encrypted_block")
     private String encryptedBlock;
 
-    @ColumnInfo(name = "personal_block")
-    private boolean personalBlock;
 
-    @ColumnInfo(name = "time_received")
-    private Date timeReceived;
+    public PendingBlock(String chatId, String encryptedBlock) {
 
+        this.id = -1;
+        this.chatId = chatId;
+        this.encryptedBlock = encryptedBlock;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getChatId() {
+        return chatId;
+    }
+
+    public String getEncryptedBlock() {
+        return encryptedBlock;
+    }
 }
