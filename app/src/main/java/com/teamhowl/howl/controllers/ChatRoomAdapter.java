@@ -5,12 +5,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.TextView;
 
 import com.teamhowl.howl.models.ChatRoom;
-import com.teamhowl.howl.models.User;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.teamhowl.howl.R;
@@ -31,7 +28,7 @@ public class ChatRoomAdapter extends ArrayAdapter<ChatRoom> {
         if (convertView == null) {
 
             convertView = LayoutInflater.from(getContext()).inflate(
-                    R.layout.cardview_connect_user,
+                    R.layout.cardview_user,
                     parent,
                     false);
         }

@@ -10,7 +10,6 @@ import android.widget.TextView;
 import com.teamhowl.howl.models.User;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import com.teamhowl.howl.R;
 
@@ -30,7 +29,7 @@ public class UserAdapter extends ArrayAdapter<User> {
         if (convertView == null) {
 
             convertView = LayoutInflater.from(getContext()).inflate(
-                    R.layout.cardview_connect_user,
+                    R.layout.cardview_user,
                     parent,
                     false);
         }
