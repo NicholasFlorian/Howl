@@ -30,6 +30,7 @@ import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.FragmentConnectBinding;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.utilities.BluetoothService;
+import com.teamhowl.howl.utilities.Crypto;
 
 import java.util.ArrayList;
 

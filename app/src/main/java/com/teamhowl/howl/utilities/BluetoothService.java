@@ -291,6 +291,8 @@ public class BluetoothService extends Service {
 
     private void disconnect(){
 
+        Log.e(TAG, "disconnect()");
+
         // Start the service over to restart listening mode
         this.start();
     }
@@ -374,7 +376,7 @@ public class BluetoothService extends Service {
             switch (message.what) {
                 case MSG_SAY_HELLO:
 
-                    Toast.makeText(applicationContext, "hello!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(applicationContext, Crypto.stringFromJNI(), Toast.LENGTH_SHORT).show();
                     break;
                 case MSG_START_DISCOVERY:
 
