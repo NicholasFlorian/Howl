@@ -19,6 +19,11 @@ android {
                 cppFlags "-std=c++11"
             }
         }
+        ndk {
+            // Tells Gradle to build outputs for the following ABIs and package
+            // them into your APK.
+            abiFilters 'arm64-v8a'
+        }
     }
 
     buildTypes {

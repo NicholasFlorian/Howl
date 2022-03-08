@@ -76,8 +76,8 @@ namespace howl {
 
             newBlock = new Block(plaintextBlock, NULL);
 
-            if(newBlock->getVersion() != 0)
-                std::cout << "\tVersion Failed" << std::endl;
+            //if(newBlock->getVersion() != 0)
+                //std::cout << "\tVersion Failed" << std::endl;
 
             _receivedHead = newBlock;
         }
@@ -85,11 +85,11 @@ namespace howl {
 
             newBlock = new Block(plaintextBlock, _receivedHead);
 
-            if(newBlock->getVersion() != _receivedLength + 1)
-                std::cout << "\tVersion Failed" << std::endl;
+            //if(newBlock->getVersion() != _receivedLength + 1)
+            //    std::cout << "\tVersion Failed" << std::endl;
 
-            if(strcmp(newBlock->getPreviousHash(), _receivedHead->getHash()) != 0)
-                std::cout << "\tPrevious Hash Failed" << std::endl;
+            //if(strcmp(newBlock->getPreviousHash(), _receivedHead->getHash()) != 0)
+            //    std::cout << "\tPrevious Hash Failed" << std::endl;
 
             _receivedHead = newBlock;
             _receivedLength++;
@@ -140,8 +140,8 @@ namespace howl {
         }
         encryptedBlock[RSA_HEX_DIGEST_LENGTH] = '\0';
 
-        OpenSSL::RSA_free(rsa);
-        OpenSSL::BIO_free(bp);
+        openSSL::RSA_free(rsa);
+        openSSL::BIO_free(bp);
         //free(plaintextBlock);
 
         return buffer;

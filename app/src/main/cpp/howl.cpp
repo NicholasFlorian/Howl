@@ -16,16 +16,18 @@
 //      }
 //    }
 
-
 #include <jni.h>
-#include <string>
+#include "blockChain.h"
 
-extern "C" JNIEXPORT jstring JNICALL
-Java_com_teamhowl_howl_utilities_Crypto_stringFromJNI(
-    JNIEnv* environment,
-    jclass thiz){
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_com_teamhowl_howl_utilities_Crypto_stringFromJNI(JNIEnv *env, jclass clazz) {
 
-    return environment->NewStringUTF(
-        "Hello from JNI !Compiled with ABI");
+    char* userAPublic = NULL;
+    char* userAPrivate = NULL;
+
+    howl::BlockChain::loadSSL();
+    howl::BlockChain::generateKeyPair(&userAPublic, &userAPrivate);
+
+    return env->NewStringUTF(userAPublic);//userAPublic);
 }
-

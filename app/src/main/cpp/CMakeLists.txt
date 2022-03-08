@@ -2,58 +2,29 @@
 # For more information about using CMake with Android Studio, read the
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
-# Sets the minimum version of CMake required to build the native library.
-
+# Set Version
 cmake_minimum_required(VERSION 3.18.1)
 
-# Declares and names the project.
-
+# Set the project name for Java class loading
 project("howl")
 
-# Creates and names a library, sets it as either STATIC
-# or SHARED, and provides the relative paths to its source code.
-# You can define multiple libraries, and CMake builds them for you.
-# Gradle automatically packages shared libraries with your APK.
+# Set the construction of the library
+add_library(howl SHARED block.cpp blockChain.cpp howl.cpp )
 
-add_library( # Sets the name of the library.
-             howl
+# Local Location of OpenSSL C++ directorires
+set(SSL_PATH /Users/nick/Documents/OpenSSL/openssl-3.0.1)
 
-             # Sets the library as a shared library.
-             SHARED
+# Include files for OpenSSL
+include_directories(${SSL_PATH}/include)
+include_directories(${SSL_PATH}/include/crypto)
+include_directories(${SSL_PATH}/include/internal)
+include_directories(${SSL_PATH}/include/openssl)
 
-             # Provides a relative path to your source file(s).
-             howl.cpp)
+# Include the OpenSSL libraries
+set(open-ssl-libs ${SSL_PATH}/libssl.a ${SSL_PATH}/libcrypto.a)
 
-# Searches for a specified prebuilt library and stores the path as a
-# variable. Because CMake includes system libraries in the search path by
-# default, you only need to specify the name of the public NDK library
-# you want to add. CMake verifies that the library exists before
-# completing its build.
+# Include the logging library
+find_library(log-lib log)
 
-find_library( # Sets the name of the path variable.
-              log-lib
-
-              # Specifies the name of the NDK library that
-              # you want CMake to locate.
-              log )
-
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
-
-target_link_libraries( # Specifies the target library.
-                       howl
-
-                       # Links the target library to the log library
-                       # included in the NDK.
-                       ${log-lib} )
-
-add_library(
-        block
-        SHARED
-        block.cpp)
-
-add_library(
-        blockChain
-        SHARED
-        blockChain.cpp)
+# Link our libraries to our project
+target_link_libraries(howl ${open-ssl-libs} ${log-lib} )

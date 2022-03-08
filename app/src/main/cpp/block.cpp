@@ -1,4 +1,5 @@
 #include "block.h"
+#include <jni.h>
 
 namespace howl {
 
@@ -99,7 +100,7 @@ namespace howl {
 
         return buffer;
     }
-    m
+
     char* Block::toJSON(){
 
         char* buffer;
@@ -230,9 +231,6 @@ namespace howl {
         }
         salt[i] = '\0';
 
-        //std::cout << "SALT::" << std::endl;
-        //std::cout << strlen(salt) << " " << i << " :: " << salt << std::endl;
-
         openSSL::SHA512_Init(ctx);
         openSSL::SHA512_Update(ctx, salt, i);
         openSSL::SHA512_Final((unsigned char*) buffer, ctx);
@@ -250,9 +248,6 @@ namespace howl {
         free(buffer);
         free(salt);
         free(ctx);
-
-        //std::cout << "HASH::" << std::endl;
-        //std::cout << strlen(hash) << " :: " << (unsigned char*)hash << std::endl;m
 
         return 1;
     }
