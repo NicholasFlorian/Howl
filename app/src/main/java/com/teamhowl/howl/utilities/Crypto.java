@@ -8,11 +8,6 @@ public class Crypto {
 
     public static native String stringFromJNI();
 
-    public static String generateChatId(String localAddress, String foriegnAddress){
-
-        return "123123123123";
-    }
-
     public static String generateKeyPair(String chatId){
 
         String publicKey = "publicKey";

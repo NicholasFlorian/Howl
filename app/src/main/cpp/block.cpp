@@ -1,5 +1,5 @@
+
 #include "block.h"
-#include <jni.h>
 
 namespace howl {
 
@@ -12,7 +12,7 @@ namespace howl {
             _version(index),
             _previousBlock(previousBlock),
             _previousHash(previousHash),
-            _message(message){
+            _message(message) {
 
         _nonce = 0;
         _timeSent = time(nullptr); // set the current time
@@ -32,14 +32,14 @@ namespace howl {
             _previousHash(previousHash),
             _currentHash(currentHash),
             _merklerootHash(merklerootHash),
-            _message(message){
+            _message(message) {
 
         _nonce = 0;
         _timeSent = time(nullptr); // set the current time
         _timeRecieved = 0;
     }
 
-    Block::Block(char* plaintextBlock, Block* previousBlock){
+    Block::Block(char* plaintextBlock, Block* previousBlock) {
 
         char* buffer;
 
@@ -66,22 +66,22 @@ namespace howl {
         free(buffer);
     }
 
-    uint32_t Block::getVersion(){
+    uint32_t Block::getVersion() {
 
         return _version;
     }
 
-    char* Block::getPreviousHash(){
+    char* Block::getPreviousHash() {
 
         return _previousHash;
     }
 
-    char* Block::getHash(){
+    char* Block::getHash() {
 
         return _currentHash;
     }
 
-    char* Block::toString(){
+    char* Block::toString() {
 
         char* buffer;
 
@@ -119,7 +119,7 @@ namespace howl {
         return buffer;
     }
 
-    void Block::mine(uint32_t work){
+    void Block::mine(uint32_t work) {
 
         bool proofOfWork;
 
@@ -142,7 +142,7 @@ namespace howl {
         }
     }
 
-    int Block::_calculateHash(){
+    int Block::_calculateHash() {
 
         openSSL::SHA512_CTX* ctx;
         char*   salt;
@@ -156,12 +156,12 @@ namespace howl {
         messageLength = strlen(_message);
         previousHashLength = strlen(_previousHash);
         merklerootHashLength = strlen(_merklerootHash);
-        saltLength = 50 + messageLength +
+        saltLength = 100 + messageLength + // should be like 50? TODO fix padding later
                      previousHashLength + merklerootHashLength + 1;
 
         ctx = (openSSL::SHA512_CTX *) malloc(sizeof(openSSL::SHA512_CTX));
         salt = (char*) malloc(sizeof(char) * saltLength);
-        buffer = (char*) malloc(sizeof(char) * SHA512_DIGEST_LENGTH);
+        buffer = (char*) malloc(sizeof(char) * (SHA512_DIGEST_LENGTH + 1));
         _currentHash = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 2));
 
         saltLength = sprintf(
@@ -194,7 +194,7 @@ namespace howl {
         return 1;
     }
 
-    int Block::_calculateMerklerootHash(){
+    int Block::_calculateMerklerootHash() {
 
         openSSL::SHA512_CTX* ctx;
         Block*  iterator;
@@ -205,7 +205,7 @@ namespace howl {
 
         ctx = (openSSL::SHA512_CTX *) malloc(sizeof(openSSL::SHA512_CTX));
         salt = (char*) malloc(sizeof(char) * (MERKLEROOT_SALT + 1));
-        buffer = (char*) malloc(sizeof(char) * SHA512_DIGEST_LENGTH);
+        buffer = (char*) malloc(sizeof(char) * (SHA512_DIGEST_LENGTH + 1));
         _merklerootHash = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 2));
 
         iterator = this;

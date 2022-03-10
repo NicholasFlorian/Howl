@@ -15,15 +15,15 @@ namespace howl {
 
         BlockChain(char* chatId);
 
-        void        addSentBlock(char* message);
+        void        buildSentBlock(char* message);
         void        addReceivedBlock(char* encryptedBlock, char* privateKey);
-        void        addPrevSentBlock(char* encryptedBlock);
-        void        addPrevReceivedBlock(char* encryptedBlock);
+        void        addPrevSentBlock(char* encryptedBlock, char* publicKey);
         char*       toString();
         char*       getEncryptedBlock(char* publicKey);
         Block*      getLastSentBlock();
         Block*      getLastReceivedBlock();
 
+        static void rebit(unsigned char* buffer, char* encryptedBlock);
         static void loadSSL();
         static void handleErrors();
         static void BIOtoChar(
@@ -36,6 +36,7 @@ namespace howl {
                 char**  chatID,
                 char*   localAddress,
                 char*   foreignAddress);
+        static void generateUserId(char** userId, char* localAddress);
 
     private:
 
