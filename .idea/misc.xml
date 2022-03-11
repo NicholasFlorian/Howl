@@ -4,11 +4,11 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/layout/activity_home.xml" value="0.2804539998372397" />
-        <entry key="app/src/main/res/layout/cardview_chatroom.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/cardview_chatroom.xml" value="0.1644021739130435" />
         <entry key="app/src/main/res/layout/cardview_connect_user.xml" value="0.30671282782070874" />
-        <entry key="app/src/main/res/layout/cardview_received_message.xml" value="0.1644021739130435" />
-        <entry key="app/src/main/res/layout/cardview_sent_message.xml" value="0.1644021739130435" />
-        <entry key="app/src/main/res/layout/cardview_user.xml" value="0.182518115942029" />
+        <entry key="app/src/main/res/layout/cardview_received_message.xml" value="0.35588166610054345" />
+        <entry key="app/src/main/res/layout/cardview_sent_message.xml" value="0.208478711998981" />
+        <entry key="app/src/main/res/layout/cardview_user.xml" value="0.15307971014492755" />
         <entry key="app/src/main/res/layout/fragment_chat_room.xml" value="0.23020833333333332" />
         <entry key="app/src/main/res/layout/fragment_connect.xml" value="0.1403985507246377" />
         <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.23020833333333332" />

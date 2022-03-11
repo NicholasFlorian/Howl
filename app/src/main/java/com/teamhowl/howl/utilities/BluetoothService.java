@@ -376,7 +376,7 @@ public class BluetoothService extends Service {
             switch (message.what) {
                 case MSG_SAY_HELLO:
 
-                    Toast.makeText(applicationContext, Crypto.stringFromJNI(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(applicationContext, Crypto.generateUserId("LOCAL_ADDRESS"), Toast.LENGTH_SHORT).show();
                     break;
                 case MSG_START_DISCOVERY:
 

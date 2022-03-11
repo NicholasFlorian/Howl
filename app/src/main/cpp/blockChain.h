@@ -17,7 +17,7 @@ namespace howl {
 
         void        buildSentBlock(char* message);
         void        addReceivedBlock(char* encryptedBlock, char* privateKey);
-        void        addPrevSentBlock(char* encryptedBlock, char* publicKey);
+        void        addPrevSentBlock(char* encryptedBlock, char* privateKey);
         char*       toString();
         char*       getEncryptedBlock(char* publicKey);
         Block*      getLastSentBlock();
