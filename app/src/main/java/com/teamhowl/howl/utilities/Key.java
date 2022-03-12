@@ -1,7 +1,11 @@
 package com.teamhowl.howl.utilities;
 
-public class KeyStore {
+import android.content.Context;
+import android.content.SharedPreferences;
 
+public class Key {
+
+    private final static String NAME = "com.teamhowl.howl.utilities.keystore";
     public final static String PUBLIC_KEY   = "PUBLIC";
     public final static String PRIVATE_KEY  = "PRIVATE";
     public final static String LOCAL_KEY    = "LOCAL";
@@ -15,25 +19,37 @@ public class KeyStore {
         return chatId + "_" + keyType + "_" + keyOrigin + "_KEY";
      }
 
-    public static void storeKey(
+    public static void store(
+        Context context,
         String chatId,
         String keyType,
         String keyOrigin,
         String key){
 
+        SharedPreferences preferences = context.getSharedPreferences(
+            NAME,
+            Context.MODE_PRIVATE);
+
         String keyId = createKeyId(chatId, keyType, keyOrigin);
 
+        preferences.edit().putString(keyId, key);
     }
 
-    public static String getKey(
+    public static String retrieve(
+        Context context,
         String chatId,
         String keyType,
-        String keyOrigin,
-        String key){
+        String keyOrigin){
+
+        SharedPreferences preferences = context.getSharedPreferences(
+                NAME,
+                Context.MODE_PRIVATE);
 
         String keyId = createKeyId(chatId, keyType, keyOrigin);
 
-        return "key";
+        String key = preferences.getString(keyId, "");
+
+        return key;
     }
 
 }

@@ -15,6 +15,7 @@ namespace howl {
 
         BlockChain(char* chatId);
 
+        void        buildGenisisBlock();
         void        buildSentBlock(char* message);
         void        addReceivedBlock(char* encryptedBlock, char* privateKey);
         void        addPrevSentBlock(char* encryptedBlock, char* privateKey);

@@ -6,25 +6,34 @@ import androidx.room.PrimaryKey;
 
 import java.util.Date;
 
-@Entity
+@Entity(tableName = "pending_block_table")
 public class PendingBlock {
 
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     @ColumnInfo(name = "id")
     private int id;
 
     @ColumnInfo(name = "chat_id")
     private String chatId;
 
+    @ColumnInfo(name = "version")
+    private int version;
+
     @ColumnInfo(name = "encrypted_block")
     private String encryptedBlock;
 
-
     public PendingBlock(String chatId, String encryptedBlock) {
 
-        this.id = -1;
         this.chatId = chatId;
         this.encryptedBlock = encryptedBlock;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     public int getId() {
@@ -33,6 +42,10 @@ public class PendingBlock {
 
     public String getChatId() {
         return chatId;
+    }
+
+    public int getVersion() {
+        return version;
     }
 
     public String getEncryptedBlock() {

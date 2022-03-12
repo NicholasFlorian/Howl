@@ -5,6 +5,18 @@ namespace howl {
 
     BlockChain::BlockChain(char* chatId) {
 
+        _chatId = (char*) malloc(sizeof(char*) * (SHA512_HEX_DIGEST_LENGTH + 1));
+        sprintf(_chatId, "%s", chatId);
+        _sentLength = 0;
+        _receivedLength = 0;
+        _work = 3;
+        
+        _sentHead = NULL;
+        _receivedHead = NULL;
+    }
+
+    void BlockChain::buildGenisisBlock() {
+
         Block*  genBlock;
         char*   initialPreviousHash;
         char*   initialCurrentHash;
@@ -15,17 +27,11 @@ namespace howl {
         initialCurrentHash = (char*) malloc(sizeof(char) * 5);
         initialMerklerootHash = (char*) malloc(sizeof(char) * 5);
         initialMessage = (char*) malloc(sizeof(char) * 12);
-        _chatId = (char*) malloc(sizeof(char*) * (SHA512_HEX_DIGEST_LENGTH + 1));
-
-        _sentLength = 0;
-        _receivedLength = 0;
-        _work = 3;
 
         sprintf(initialPreviousHash, "NULL");
         sprintf(initialCurrentHash, "NULL");
         sprintf(initialMerklerootHash, "NULL");
         sprintf(initialMessage, "GENSISBLOCK");
-        sprintf(_chatId, "%s", chatId);
 
         genBlock = new Block(
                 _sentLength++,
@@ -37,7 +43,6 @@ namespace howl {
 
         (*genBlock).mine(_work);
         _sentHead = genBlock;
-        _receivedHead = NULL;
     }
 
     void BlockChain::buildSentBlock(char* message) {

@@ -2,19 +2,27 @@ package com.teamhowl.howl.controllers;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
-import com.teamhowl.howl.models.StashedBlock;
+import com.teamhowl.howl.models.PooledBlock;
 
 import java.util.List;
 
-public interface PooledBlockDao extends Dao {
-    @Query("SELECT * FROM StashedBlock WHERE chat_id LIKE :chatId")
-    public abstract List<StashedBlock> findBlocksByChatId(String chatId);
+@Dao
+public interface PooledBlockDao {
 
-    @Query("SELECT * FROM StashedBlock")
-    public abstract List<StashedBlock> findAllBlocks();
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    void insert(PooledBlock pooledBlock);
 
-    @Delete
-    public void deleteBlocks(List<StashedBlock> chatId_blocks);
+    @Query("SELECT * FROM pooled_block_table WHERE chat_id LIKE :chatId ORDER BY version")
+    public abstract List<PooledBlock> findBlocksByChatId(String chatId);
+
+    @Query("SELECT * FROM pooled_block_table")
+    public abstract List<PooledBlock> findAllBlocks();
+
+    @Query("DELETE FROM pooled_block_table WHERE chat_id Like :chatId")
+    public void deleteBlocks(String chatId);
+
 }
