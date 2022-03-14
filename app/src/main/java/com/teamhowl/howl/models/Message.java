@@ -25,6 +25,7 @@ public class Message {
         this.text = text;
         this.timeSent = timeSent;
         this.timeReceived = new Date(0, 0, 0);
+        this.type = SENT;
     }
 
     // TODO remove Mock

@@ -22,6 +22,7 @@ import com.teamhowl.howl.controllers.PooledBlockDao;
 import com.teamhowl.howl.controllers.StashedBlockDao;
 import com.teamhowl.howl.controllers.UserDao;
 import com.teamhowl.howl.models.BlockChain;
+import com.teamhowl.howl.models.BlockChainStub;
 import com.teamhowl.howl.models.PendingBlock;
 import com.teamhowl.howl.models.PooledBlock;
 import com.teamhowl.howl.models.StashedBlock;
@@ -35,10 +36,11 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class BluetoothService extends Service {
-    private static final String TAG = "HOWL :: BluetoothService";
+    private static final String TAG = "HOWL :: BluetoothService:";
 
     /** Bluetooth service information */
     private static final String SERVICE_SECURE = "SERVICE_SECURE";
@@ -282,10 +284,34 @@ public class BluetoothService extends Service {
         // Display this to the user user the UI handler
         //sendThreadSafeToast("Created Chatroom with" + text);
 
-        createChatRoom();
+        try{
+
+            UserDao userDao = userRoomDatabase.userDao();
+
+            /** Exchange User Ids and Generate ChatId **/
+            Log.d(TAG, "Exchanging User Ids:");
+
+            String localUserId = Crypto.generateUserId(adapter.getName());
+            communicateThread.write(localUserId);
+            String foreignUserId = communicateThread.read();
+
+            String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
+            User user = userDao.findUserByChatId(chatId);
+
+            if(user == null)
+                createChatRoom();
+            else
+                exchangeMessages();
+        }
+        catch(SecurityException e){
+            Log.e(TAG, e.getMessage());
+        }
+
     }
 
-    private void createChatRoom() {
+    private synchronized void createChatRoom() {
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
         Log.d(TAG, "createChatRoom:");
 
         try {
@@ -297,11 +323,11 @@ public class BluetoothService extends Service {
             /** Exchange User Ids and Generate ChatId **/
             Log.d(TAG, "Exchanging User Ids:");
 
-            String localUserId = Crypto.generateUserId("ABCDEF");
+            String localUserId = Crypto.generateUserId(adapter.getName());
             communicateThread.write(localUserId);
             String foreignUserId = communicateThread.read();
 
-            String chatId = Crypto.generateChatId(localUserId, foreignUserId);
+            String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
 
             /** Exchange User Names **/
             Log.d(TAG, "Exchanging User Names:");
@@ -347,7 +373,7 @@ public class BluetoothService extends Service {
             /** Exchange GENISIS BLOCKS **/
             Log.d(TAG, "Exchanging Blocks:");
 
-            BlockChain blockChain = new BlockChain(getApplicationContext(), chatId);
+            BlockChainStub blockChain = new BlockChainStub(getApplicationContext(), chatId);
             PendingBlock pendingBlock = blockChain.buildGenesisMessage();
 
             communicateThread.write(pendingBlock.getEncryptedBlock());
@@ -356,14 +382,76 @@ public class BluetoothService extends Service {
 
             stashedBlockDao.insert(stashedBlock);
             pendingBlockDao.insert(pendingBlock);
-            /**/
 
             Log.d(TAG, "Create Chat Room Complete:");
 
         }
         catch(SecurityException e){
-            communicateThread.write("None");
+            Log.e(TAG, e.getMessage());
         }
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+    }
+
+    private synchronized void exchangeMessages() {
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+        Log.d(TAG, "exchangeMessages:");
+
+        try{
+            PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
+            StashedBlockDao stashedBlockDao = blockRoomDatabase.stashedBlockDao();
+
+            /** Exchange User Ids and Generate ChatId **/
+            Log.d(TAG, "Exchanging User Ids:");
+
+            String localUserId = Crypto.generateUserId(adapter.getName());
+            communicateThread.write(localUserId);
+            String foreignUserId = communicateThread.read();
+
+            String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
+
+            /** Exchange Blocks **/
+            List<PendingBlock> pendingBlocks = pendingBlockDao.findBlocksByChatId(chatId);
+            int i = 0;
+            int pendingBlockLength = pendingBlocks.size();
+
+            boolean isReceiving = true;
+            while (isReceiving) {
+
+                String response;
+
+                // If we are out of blocks send a fake one
+                if(i >= pendingBlockLength - 1){
+
+                    communicateThread.write("EMPTY");
+                }
+                else{
+
+                    Log.d(TAG, "SENDING BLOCK: ");
+                    communicateThread.write(pendingBlocks.get(i++).getEncryptedBlock());
+                }
+
+                response = communicateThread.read();
+                if(response.equals("EMPTY")){
+
+                    if(i == pendingBlockLength - 1)
+                        isReceiving = false;
+                }
+                else{
+
+                    StashedBlock stashedBlock = new StashedBlock(chatId, response);
+                    stashedBlockDao.insert(stashedBlock);
+                }
+            }
+
+            Log.d(TAG, "Exchange Complete:");
+        }
+        catch(SecurityException e){
+            Log.e(TAG, e.getMessage());
+        }
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
     }
 
     private void connectionFailed() {

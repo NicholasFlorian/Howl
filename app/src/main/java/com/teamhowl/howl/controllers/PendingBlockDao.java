@@ -13,7 +13,7 @@ import java.util.List;
 @Dao
 public interface PendingBlockDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(PendingBlock pendingBlock);
 
     @Query("SELECT * FROM pending_block_table WHERE chat_id LIKE :chatId ORDER BY version")

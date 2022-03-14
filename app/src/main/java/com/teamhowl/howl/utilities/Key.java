@@ -2,8 +2,10 @@ package com.teamhowl.howl.utilities;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 
 public class Key {
+    private static final String TAG = "HOWL :: KeyService:";
 
     private final static String NAME = "com.teamhowl.howl.utilities.keystore";
     public final static String PUBLIC_KEY   = "PUBLIC";
@@ -33,6 +35,10 @@ public class Key {
         String keyId = createKeyId(chatId, keyType, keyOrigin);
 
         preferences.edit().putString(keyId, key);
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+        Log.d(TAG, "STORING :: " + keyId + " :: " + key);
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
     }
 
     public static String retrieve(
@@ -48,6 +54,10 @@ public class Key {
         String keyId = createKeyId(chatId, keyType, keyOrigin);
 
         String key = preferences.getString(keyId, "");
+
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+        Log.d(TAG, "RETRIEVING :: " + keyId + " :: " + key);
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 
         return key;
     }

@@ -13,7 +13,7 @@ import java.util.List;
 @Dao
 public interface PooledBlockDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(PooledBlock pooledBlock);
 
     @Query("SELECT * FROM pooled_block_table WHERE chat_id LIKE :chatId ORDER BY version")

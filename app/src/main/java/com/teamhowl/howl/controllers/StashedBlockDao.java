@@ -13,7 +13,7 @@ import java.util.List;
 @Dao
 public interface StashedBlockDao {
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     public void insert(StashedBlock stashedBlock);
 
     @Query("SELECT * FROM stashed_block_table WHERE chat_id LIKE :chatId ORDER BY version")
