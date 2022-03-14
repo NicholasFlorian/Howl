@@ -1,11 +1,11 @@
 package com.teamhowl.howl.models;
 
-import java.util.Date;
+import java.sql.Date;
 
 public class Message {
 
-    public final int SENT = 1;
-    public final int RECIEVED = 2;
+    public static final int SENT = 1;
+    public static final int RECIEVED = 2;
 
     private String text;
     private Date timeSent;
@@ -23,8 +23,17 @@ public class Message {
     public Message(String text, Date timeSent){
 
         this.text = text;
-        this.timeSent = new Date();
-        this.timeReceived = timeReceived;
+        this.timeSent = timeSent;
+        this.timeReceived = new Date(0, 0, 0);
+    }
+
+    // TODO remove Mock
+    public Message(String text, int type){
+
+        this.text = text;
+        this.timeSent = new Date(0, 0, 0);
+        this.timeReceived = new Date(0, 0, 0);
+        this.type = type;
     }
 
     public String getText(){

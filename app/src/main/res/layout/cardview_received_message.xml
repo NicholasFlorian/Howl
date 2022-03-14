@@ -13,18 +13,18 @@
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="#4CAF50"
-        app:layout_constraintEnd_toStartOf="@+id/recieved_time2"
+        app:layout_constraintEnd_toStartOf="@+id/received_time2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/recieved_message"
+            android:id="@+id/received_message"
             android:layout_width="0dp"
-            android:layout_height="19dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:text="TextView"
-            android:textSize="16sp"
+            android:textSize="18sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -42,7 +42,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/recieved_time2"
+        android:id="@+id/received_time2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"

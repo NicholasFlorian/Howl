@@ -26,6 +26,7 @@ public class SettingsFragment extends Fragment {
 
         final TextView textView = binding.textNotifications;
         settingsViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+
         return root;
     }
 
@@ -34,4 +35,5 @@ public class SettingsFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
+
 }

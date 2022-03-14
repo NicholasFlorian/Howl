@@ -4,11 +4,15 @@ import android.bluetooth.BluetoothDevice;
 
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
+
+import org.jetbrains.annotations.NotNull;
 
 @Entity(tableName = "user_table")
 public class User {
 
+    @NotNull
     @PrimaryKey
     @ColumnInfo(name = "chat_id")
     private String chatId;
@@ -17,6 +21,7 @@ public class User {
     private String userName;
 
     /* Encapsulated for UI */
+    @Ignore
     private BluetoothDevice device;
 
     public User(String chatId, String userName){

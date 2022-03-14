@@ -5,7 +5,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -13,7 +12,7 @@ import android.widget.Toast;
 
 import com.teamhowl.howl.R;
 
-public class SplashScreen extends AppCompatActivity {
+public class SplashScreenActivity extends AppCompatActivity {
 
     private static final int  ACCESS_LOCATION    = 101;
 
@@ -41,7 +40,7 @@ public class SplashScreen extends AppCompatActivity {
         else{
 
             // If granted, load the home activity
-            Intent myIntent = new Intent(this,Home.class);
+            Intent myIntent = new Intent(this, HomeActivity.class);
             this.startActivity(myIntent);
         }
     }
@@ -56,7 +55,7 @@ public class SplashScreen extends AppCompatActivity {
                     Toast.makeText(this, "PERMISSION GRANTED", Toast.LENGTH_SHORT).show();
 
                     // If granted, load the home activity
-                    Intent myIntent = new Intent(this,Home.class);
+                    Intent myIntent = new Intent(this, HomeActivity.class);
                     this.startActivity(myIntent);
                 }
                 else {

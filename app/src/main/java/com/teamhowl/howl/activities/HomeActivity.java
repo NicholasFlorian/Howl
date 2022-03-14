@@ -33,7 +33,7 @@ import com.teamhowl.howl.utilities.BluetoothService;
 
 import java.util.ArrayList;
 
-public class Home extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity {
 
     /** Our Activity */
     private ActivityHomeBinding binding;

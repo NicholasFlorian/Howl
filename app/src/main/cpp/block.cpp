@@ -14,6 +14,8 @@ namespace howl {
             _previousHash(previousHash),
             _message(message) {
 
+        _currentHash = nullptr;
+        _merklerootHash = nullptr;
         _nonce = 0;
         _timeSent = time(nullptr); // set the current time
         _timeRecieved = 0;
@@ -63,7 +65,7 @@ namespace howl {
         _calculateMerklerootHash();
         _calculateHash();
 
-        free(buffer);
+        //free(buffer);
     }
 
     uint32_t Block::getVersion() {
@@ -85,7 +87,7 @@ namespace howl {
 
         char* buffer;
 
-        buffer = (char*) malloc(sizeof(char) * 1000);
+        buffer = (char*) malloc(sizeof(char) * 2048);
 
         sprintf(
                 buffer,
@@ -105,7 +107,7 @@ namespace howl {
 
         char* buffer;
 
-        buffer = (char*) malloc(sizeof(char) * 513);
+        buffer = (char*) malloc(sizeof(char) * 1024);
 
         sprintf(
                 buffer,
@@ -135,7 +137,7 @@ namespace howl {
                 if(_currentHash[i] != '0'){
 
                     proofOfWork = false;
-                    free(_currentHash);
+                    //free(_currentHash);
                     break;
                 }
             }
@@ -162,7 +164,7 @@ namespace howl {
         ctx = (openSSL::SHA512_CTX *) malloc(sizeof(openSSL::SHA512_CTX));
         salt = (char*) malloc(sizeof(char) * saltLength);
         buffer = (char*) malloc(sizeof(char) * (SHA512_DIGEST_LENGTH + 1));
-        _currentHash = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 2));
+        _currentHash = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 8));
 
         saltLength = sprintf(
                 salt,
@@ -187,9 +189,9 @@ namespace howl {
         }
         _currentHash[SHA512_HEX_DIGEST_LENGTH] = '\0';
 
-        free(buffer);
-        free(salt);
-        free(ctx);
+        //free(buffer);
+        //free(salt);
+        //free(ctx);
 
         return 1;
     }
@@ -206,7 +208,7 @@ namespace howl {
         ctx = (openSSL::SHA512_CTX *) malloc(sizeof(openSSL::SHA512_CTX));
         salt = (char*) malloc(sizeof(char) * (MERKLEROOT_SALT + 1));
         buffer = (char*) malloc(sizeof(char) * (SHA512_DIGEST_LENGTH + 1));
-        _merklerootHash = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 2));
+        _merklerootHash = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 8));
 
         iterator = this;
         i = 0;
@@ -226,8 +228,6 @@ namespace howl {
                 if(i == MERKLEROOT_SALT)
                     break;
             }
-
-
         }
         salt[i] = '\0';
 
@@ -245,9 +245,9 @@ namespace howl {
         }
         _merklerootHash[SHA512_HEX_DIGEST_LENGTH] = '\0';
 
-        free(buffer);
-        free(salt);
-        free(ctx);
+        //free(buffer);
+        //free(salt);
+        //free(ctx);
 
         return 1;
     }

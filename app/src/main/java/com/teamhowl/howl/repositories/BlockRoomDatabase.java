@@ -31,7 +31,7 @@ public abstract class BlockRoomDatabase extends RoomDatabase {
             INSTANCE = Room.databaseBuilder(
                 context.getApplicationContext(),
                 BlockRoomDatabase.class,
-                "block_data_base").build();
+                "block_data_base").allowMainThreadQueries().build();
         }
 
         return INSTANCE;

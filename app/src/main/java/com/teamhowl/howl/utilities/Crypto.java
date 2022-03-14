@@ -9,6 +9,7 @@ public class Crypto {
 
     public static native void loadSSL();
 
+    // public then private
     public static native String[] generateKeyPair();
 
     public static native String generateChatId(String localUserId, String foreignUserId);

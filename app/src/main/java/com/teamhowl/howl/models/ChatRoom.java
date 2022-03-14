@@ -5,12 +5,12 @@ import android.content.Context;
 public class ChatRoom {
 
     private User user;
-    private BlockChain blockChain;
+    //private BlockChain blockChain;
 
-    public ChatRoom(User user, Context context){
+    public ChatRoom(User user){
 
         this.user = user;
-        this.blockChain = new BlockChain(user.getChatId(), context);
+        //this.blockChain = new BlockChain(context, user.getChatId());
     }
 
     public void refresh(){
@@ -22,7 +22,7 @@ public class ChatRoom {
         return user;
     }
 
-    public BlockChain getChain(){
+    /*public BlockChain getChain(){
         return blockChain;
-    }
+    }*/
 }

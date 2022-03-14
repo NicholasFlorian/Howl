@@ -17,7 +17,17 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.teamhowl.howl.controllers.PendingBlockDao;
+import com.teamhowl.howl.controllers.PooledBlockDao;
+import com.teamhowl.howl.controllers.StashedBlockDao;
+import com.teamhowl.howl.controllers.UserDao;
+import com.teamhowl.howl.models.BlockChain;
+import com.teamhowl.howl.models.PendingBlock;
+import com.teamhowl.howl.models.PooledBlock;
+import com.teamhowl.howl.models.StashedBlock;
 import com.teamhowl.howl.models.User;
+import com.teamhowl.howl.repositories.BlockRoomDatabase;
+import com.teamhowl.howl.repositories.UserRoomDatabase;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,10 +43,8 @@ public class BluetoothService extends Service {
     /** Bluetooth service information */
     private static final String SERVICE_SECURE = "SERVICE_SECURE";
     private static final String SERVICE_INSECURE = "SERVICE_INSECURE";
-    private static final UUID UUID_SECURE =
-            ParcelUuid.fromString("00001101-0000-1000-8000-00805F9B34FB").getUuid();
-    private static final UUID UUID_INSECURE =
-            ParcelUuid.fromString("00001101-0000-1000-8000-00805F9B34FB").getUuid();
+    private static final UUID UUID_SECURE = ParcelUuid.fromString("00001101-0000-1000-8000-00805F9B34FB").getUuid();
+    private static final UUID UUID_INSECURE = ParcelUuid.fromString("00001101-0000-1000-8000-00805F9B34FB").getUuid();
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     /** Thread states */
@@ -85,7 +93,9 @@ public class BluetoothService extends Service {
     private TimeoutThread timeoutThread;
     private int currentState;
 
-    /** Local user management */
+    /** Data Management */
+    private BlockRoomDatabase blockRoomDatabase;
+    private UserRoomDatabase userRoomDatabase;
     private ArrayList<User> localUsers;
 
     /** Lifecycle of our service */
@@ -100,6 +110,8 @@ public class BluetoothService extends Service {
         this.communicateThread = null;
         start();
 
+        blockRoomDatabase = BlockRoomDatabase.getDatabase(getApplicationContext());
+        userRoomDatabase = UserRoomDatabase.getDatabase(getApplicationContext());
         localUsers = new ArrayList<>();
     }
 
@@ -259,16 +271,99 @@ public class BluetoothService extends Service {
         communicateThread = new CommunicateThread(socket, socketType);
         communicateThread.start();
 
+        //try {
+        //    communicateThread.write(adapter.getName());
+        //}
+        //catch(SecurityException e){
+        //    communicateThread.write("None");
+        //}
+        //String text = communicateThread.read();
+
+        // Display this to the user user the UI handler
+        //sendThreadSafeToast("Created Chatroom with" + text);
+
+        createChatRoom();
+    }
+
+    private void createChatRoom() {
+        Log.d(TAG, "createChatRoom:");
+
         try {
-            communicateThread.write(adapter.getName());
+
+            PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
+            StashedBlockDao stashedBlockDao = blockRoomDatabase.stashedBlockDao();
+            UserDao userDao = userRoomDatabase.userDao();
+
+            /** Exchange User Ids and Generate ChatId **/
+            Log.d(TAG, "Exchanging User Ids:");
+
+            String localUserId = Crypto.generateUserId("ABCDEF");
+            communicateThread.write(localUserId);
+            String foreignUserId = communicateThread.read();
+
+            String chatId = Crypto.generateChatId(localUserId, foreignUserId);
+
+            /** Exchange User Names **/
+            Log.d(TAG, "Exchanging User Names:");
+
+            String localUserName = adapter.getName();
+            communicateThread.write(localUserName);
+            String foreignUserName = communicateThread.read();
+
+            User newUser = new User(chatId, foreignUserName);
+            userDao.insert(newUser);
+
+            /** Exchange Keys **/
+            Log.d(TAG, "Exchanging Keys:");
+
+            String keys[] = Crypto.generateKeyPair();
+            String localPublicKey = keys[0];
+            String localPrivateKey = keys[1];
+
+            communicateThread.write(localPublicKey);
+            String foreignPublicKey = communicateThread.read();
+
+            Key.store(
+                getApplicationContext(),
+                chatId,
+                Key.PUBLIC_KEY,
+                Key.LOCAL_KEY,
+                localPublicKey);
+
+            Key.store(
+                getApplicationContext(),
+                chatId,
+                Key.PRIVATE_KEY,
+                Key.LOCAL_KEY,
+                localPrivateKey);
+
+            Key.store(
+                getApplicationContext(),
+                chatId,
+                Key.PUBLIC_KEY,
+                Key.FOREIGN_KEY,
+                foreignPublicKey);
+
+            /** Exchange GENISIS BLOCKS **/
+            Log.d(TAG, "Exchanging Blocks:");
+
+            BlockChain blockChain = new BlockChain(getApplicationContext(), chatId);
+            PendingBlock pendingBlock = blockChain.buildGenesisMessage();
+
+            communicateThread.write(pendingBlock.getEncryptedBlock());
+            String encryptedBlock = communicateThread.read();
+            StashedBlock stashedBlock = new StashedBlock(chatId, encryptedBlock);
+
+            stashedBlockDao.insert(stashedBlock);
+            pendingBlockDao.insert(pendingBlock);
+            /**/
+
+            Log.d(TAG, "Create Chat Room Complete:");
+
         }
         catch(SecurityException e){
             communicateThread.write("None");
         }
-        String text = communicateThread.read();
-
-        // Display this to the user user the UI handler
-        sendThreadSafeToast("Created Chatroom with" + text);
     }
 
     private void connectionFailed() {
