@@ -218,8 +218,11 @@ namespace howl {
 
             if(iterator->_version == 0)
                 break;
-            else
-                iterator = iterator->_previousBlock;
+
+            if(iterator->_previousBlock == NULL)
+                break;
+
+            iterator = iterator->_previousBlock;
 
             hashLength = strlen(iterator->_currentHash);
             for(int j = 0; j < hashLength; j++){

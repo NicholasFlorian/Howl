@@ -29,6 +29,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.FragmentConnectBinding;
 import com.teamhowl.howl.models.BlockChain;
+import com.teamhowl.howl.models.PendingBlock;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.utilities.BluetoothService;
 import com.teamhowl.howl.utilities.Crypto;
@@ -116,7 +117,7 @@ public class ConnectFragment extends Fragment {
 
             @Override
             public void onClick(View view) {
-
+                //testBlockChain();
                 BlockChain.testMainCode();
                 //sendMessage();
             }
@@ -149,6 +150,10 @@ public class ConnectFragment extends Fragment {
 
         userAdapter.clear();
         startDiscovery();
+    }
+
+    public void testBlockChain(){
+
     }
 
     public void sendMessage() {

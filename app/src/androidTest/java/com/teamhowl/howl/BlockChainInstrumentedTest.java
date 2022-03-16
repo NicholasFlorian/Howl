@@ -27,25 +27,7 @@ public class BlockChainInstrumentedTest {
     public void testAll() {
         // Context of the app under test.
         /*"com.teamhowl.howl" package name*/
-        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-
         String userAId = Crypto.generateUserId("ADDRESS");
-        String userBId = Crypto.generateUserId("ADDRESS");
-
-        String chatId = Crypto.generateChatId(userAId, userBId);
-
-        BlockChain blockChainA = new BlockChain(appContext, chatId);
-        BlockChain blockChainB = new BlockChain(appContext, chatId);
-
-        PendingBlock pendingBlockA1 = blockChainA.buildGenesisMessage();
-        blockChainB.addReceivedMessage(new StashedBlock(
-                pendingBlockA1.getChatId(),
-                pendingBlockA1.getEncryptedBlock()));
-
-        PendingBlock pendingBlockA2 = blockChainA.buildMessage("Message 1");
-        blockChainB.addReceivedMessage(new StashedBlock(
-            pendingBlockA2.getChatId(),
-            pendingBlockA2.getEncryptedBlock()));
 
         assert(true);
     }
@@ -53,7 +35,7 @@ public class BlockChainInstrumentedTest {
     @Test
     public void generateUserId() {
 
-        //String userAId = Crypto.generateUserId("ADDRESS");
+        String userAId = Crypto.generateUserId("ADDRESS");
         //String userBId = Crypto.generateUserId("ADDRESS");
         assert(true);
     }

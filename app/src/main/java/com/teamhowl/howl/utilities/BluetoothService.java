@@ -273,19 +273,7 @@ public class BluetoothService extends Service {
         communicateThread = new CommunicateThread(socket, socketType);
         communicateThread.start();
 
-        //try {
-        //    communicateThread.write(adapter.getName());
-        //}
-        //catch(SecurityException e){
-        //    communicateThread.write("None");
-        //}
-        //String text = communicateThread.read();
-
-        // Display this to the user user the UI handler
-        //sendThreadSafeToast("Created Chatroom with" + text);
-
         try{
-
             UserDao userDao = userRoomDatabase.userDao();
 
             /** Exchange User Ids and Generate ChatId **/
@@ -373,8 +361,8 @@ public class BluetoothService extends Service {
             /** Exchange GENISIS BLOCKS **/
             Log.d(TAG, "Exchanging Blocks:");
 
-            BlockChainStub blockChain = new BlockChainStub(getApplicationContext(), chatId);
-            PendingBlock pendingBlock = blockChain.buildGenesisMessage();
+            BlockChain blockChain = new BlockChain(getApplicationContext(), chatId);
+            PendingBlock pendingBlock = blockChain.buildGenesisBlock();
 
             communicateThread.write(pendingBlock.getEncryptedBlock());
             String encryptedBlock = communicateThread.read();
@@ -385,6 +373,7 @@ public class BluetoothService extends Service {
 
             Log.d(TAG, "Create Chat Room Complete:");
 
+            sendThreadSafeToast("Created Chatroom.");
         }
         catch(SecurityException e){
             Log.e(TAG, e.getMessage());
@@ -573,7 +562,6 @@ public class BluetoothService extends Service {
                     break;
                 case MSG_EXCHANGE_BLOCKS:
 
-                    //TODO
                     break;
                 default:
                     super.handleMessage(message);

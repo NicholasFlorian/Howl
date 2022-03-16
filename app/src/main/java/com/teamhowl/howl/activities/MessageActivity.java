@@ -28,7 +28,7 @@ public class MessageActivity extends AppCompatActivity {
     public static final String KEY_CHAT_ID = "KEY_CHAT_ID";
 
     private String chatId;
-    private BlockChainStub blockChain;
+    private BlockChain blockChain;
     private MessageAdapter messageAdapter;
     private TextView messageTextView;
     private BlockRoomDatabase blockRoomDatabase;
@@ -42,7 +42,7 @@ public class MessageActivity extends AppCompatActivity {
 
         chatId = getIntent().getExtras().getString(KEY_CHAT_ID);
         messageAdapter = new MessageAdapter(this);
-        blockChain = new BlockChainStub(this, chatId);
+        blockChain = new BlockChain(this, chatId);
 
         ListView messageListView = findViewById(R.id.listViewMessage);
         messageListView.setAdapter(messageAdapter);
@@ -65,27 +65,21 @@ public class MessageActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-        // TODO remove Mock
-        blockChain.refresh();
-
+        blockChain.rerefresh();
+        blockChain.buildAllMessages();
         messageAdapter.updateMessages(blockChain.getMessages());
-
-        /*messageAdapter.add(new Message("Hello how are you?", 1));
-        messageAdapter.add(new Message("I am well, how are you?", 2));
-        messageAdapter.add(new Message("I am okay, I just got a dog.", 1));
-        messageAdapter.add(new Message("That's cool, whats his name?", 2));
-        messageAdapter.add(new Message("His name is Rosco.", 1));
-        messageAdapter.add(new Message("That's cool!", 2));*/
     }
 
     public void sendMessage(){
 
         PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
 
-        PendingBlock block = blockChain.buildMessage(messageTextView.getText().toString());
+        PendingBlock block = blockChain.buildSentMessage(messageTextView.getText().toString());
         pendingBlockDao.insert(block);
 
-        blockChain.refresh();
+        blockChain.rerefresh();
+        blockChain.buildAllMessages();
+        messageAdapter.updateMessages(blockChain.getMessages());
     }
 
 }

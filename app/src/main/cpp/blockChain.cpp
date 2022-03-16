@@ -112,26 +112,11 @@ namespace howl {
         //free(plaintextBlock);
     }
 
-    void BlockChain::addPrevSentBlock(char* encryptedBlock, char* privateKey) {
+    void BlockChain::addPrevSentBlock(char* plaintextBlock) {
 
         openSSL::RSA*   rsa = NULL;
         openSSL::BIO*   bp;
         Block*          newBlock;
-        char*           buffer = NULL;
-        char*           plaintextBlock = NULL;
-
-        bp = openSSL::BIO_new_mem_buf(privateKey, -1);
-        openSSL::PEM_read_bio_RSAPrivateKey(bp, &rsa, 0, 0);
-
-        buffer = (char*) malloc(sizeof(char) * (RSA_DIGEST_LENGTH + 1));
-        plaintextBlock = (char*) malloc(sizeof(char*) * (RSA_HEX_DIGEST_LENGTH + 1));
-
-        openSSL::RSA_private_decrypt(
-                RSA_DIGEST_LENGTH,
-                (unsigned char*) encryptedBlock,
-                (unsigned char*) plaintextBlock,
-                rsa,
-                RSA_PKCS1_OAEP_PADDING);
 
         if(_sentHead == NULL){
 
@@ -176,7 +161,7 @@ namespace howl {
         char*           p;
 
         plaintextBlock = _sentHead->toJSON();
-        buffer = (char*) malloc(sizeof(char) * RSA_DIGEST_LENGTH);
+        buffer = (char*) malloc(sizeof(char) * (RSA_DIGEST_LENGTH + 1));
         encryptedBlock = (char*) malloc(sizeof(char) * (RSA_HEX_DIGEST_LENGTH + 1));
 
         bp = openSSL::BIO_new_mem_buf(publicKey, -1); //strlen(publicKey)
@@ -184,7 +169,7 @@ namespace howl {
 
         // TODO int val = Error handle the sscanf results
         openSSL::RSA_public_encrypt(
-                strlen(plaintextBlock) + 1,  //TODO maybe + 1
+                strlen(plaintextBlock),
                 (unsigned char*) plaintextBlock,
                 (unsigned char*) buffer,
                 rsa,
@@ -314,6 +299,8 @@ namespace howl {
 
         if(!(openSSL::BIO_read(bp, (unsigned char*) *key, length - 1)))
             handleErrors();
+
+        (*key)[length - 1] = '\0';
     }
 
     void BlockChain::generateKeyPair(

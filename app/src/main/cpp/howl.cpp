@@ -85,6 +85,8 @@ Java_com_teamhowl_howl_utilities_Crypto_generateUserId(JNIEnv *env, jclass clazz
     return jUserId;
 }
 
+
+
 /** BlockChain Java Library */
 extern "C"
 JNIEXPORT jlong JNICALL
@@ -98,12 +100,11 @@ Java_com_teamhowl_howl_models_BlockChain_buildBlockChain(JNIEnv *env, jobject th
 
     chatId = const_cast<char *>(env->GetStringUTFChars(chat_id, 0));
 
-
     blockChain = new howl::BlockChain(chatId);
 
     //env->ReleaseStringUTFChars(chat_id, chatId);
 
-    return reinterpret_cast<jlong>(blockChain);
+    return (long) blockChain;
 }
 
 extern "C"
@@ -113,8 +114,10 @@ Java_com_teamhowl_howl_models_BlockChain_buildGenesisBlock(JNIEnv *env, jobject 
 
     howl::BlockChain* blockChain;
 
-    blockChain = reinterpret_cast<howl::BlockChain *>(pointer);
+    blockChain = (howl::BlockChain*) pointer;
     blockChain->buildGenisisBlock();
+
+    return;
 }
 
 extern "C"
@@ -182,8 +185,8 @@ Java_com_teamhowl_howl_models_BlockChain_addPrevSentBlock(JNIEnv *env, jobject t
     encryptedBlock = const_cast<char *>(env->GetStringUTFChars(encrypted_block, 0));
     publicKey = const_cast<char *>(env->GetStringUTFChars(public_key, 0));
 
-    blockChain->addPrevSentBlock(encryptedBlock, publicKey);
-    plainTextBlock = blockChain->getLastSentBlock()->toString();
+   // blockChain->addPrevSentBlock(encryptedBlock, publicKey);
+    //plainTextBlock = blockChain->getLastSentBlock()->toString();
 
     jPlainTextBlock = env->NewStringUTF(plainTextBlock);
 
@@ -205,7 +208,9 @@ Java_com_teamhowl_howl_models_BlockChain_getEncryptedBlock(JNIEnv *env, jobject 
     char* privateKey;
     jstring jEncryptedBlock;
 
-    blockChain = reinterpret_cast<howl::BlockChain *>(pointer);
+
+    blockChain = (howl::BlockChain*) pointer;
+    blockChain->buildGenisisBlock();
     privateKey = const_cast<char *>(env->GetStringUTFChars(private_key, 0));
 
     encryptedBlock = blockChain->getEncryptedBlock(privateKey);
@@ -267,4 +272,139 @@ Java_com_teamhowl_howl_models_BlockChain_testMainCode(JNIEnv *env, jclass thiz) 
     userA->buildSentBlock((char *) "message 1");
     char* temp2 = userA->getEncryptedBlock(userBPublic);
     userB->addReceivedBlock(temp2, userBPrivate);
+}
+
+/** Redux */
+
+extern "C"
+JNIEXPORT jobjectArray JNICALL
+Java_com_teamhowl_howl_models_BlockChain_cBuildReceivedMessages(JNIEnv *env, jobject thiz,
+    jstring jChatId,
+    jobjectArray jEncryptedBlocks,
+    jstring jPrivateKey) {
+
+    howl::BlockChain::loadSSL();
+
+    char* chatId = const_cast<char *>(env->GetStringUTFChars(jChatId, 0));
+    howl::BlockChain* blockChain = new howl::BlockChain(chatId);
+
+    jsize encryptedSize = env->GetArrayLength(jEncryptedBlocks);
+
+    char* privateKey = const_cast<char *>(env->GetStringUTFChars(jPrivateKey, 0));
+
+    jobjectArray jBlocks = (jobjectArray)env->NewObjectArray(
+            encryptedSize,
+            env->FindClass("java/lang/String"),
+            env->NewStringUTF(""));
+
+    for(jsize i = 0; i < encryptedSize; i++){
+
+        jstring jEncryptedBlock = static_cast<jstring>(
+                env->GetObjectArrayElement(jEncryptedBlocks, i));
+
+        char* encryptedBlock = const_cast<char *>(
+                env->GetStringUTFChars(jEncryptedBlock, 0));
+
+        blockChain->addReceivedBlock(encryptedBlock, privateKey);
+
+        char* plaintextBlock = blockChain->getLastReceivedBlock()->toJSON();
+
+        env->SetObjectArrayElement(
+                jBlocks,
+                0,
+                env->NewStringUTF(plaintextBlock));
+    }
+
+    return jBlocks;
+}
+
+extern "C"
+JNIEXPORT jobjectArray JNICALL
+Java_com_teamhowl_howl_models_BlockChain_cBuildSentMessage(JNIEnv *env, jobject thiz,
+    jstring jChatId,
+    jobjectArray jPlaintextBlocks,
+    jstring jMessage,
+    jstring jPublicKey) {
+
+    howl::BlockChain::loadSSL();
+
+    char* chatId = const_cast<char *>(env->GetStringUTFChars(jChatId, 0));
+    howl::BlockChain* blockChain = new howl::BlockChain(chatId);
+
+    jsize plaintextSize = env->GetArrayLength(jPlaintextBlocks);
+
+    for(jsize i = 0; i < plaintextSize; i++){
+
+        jstring jPlaintextBlock = static_cast<jstring>(
+                env->GetObjectArrayElement(jPlaintextBlocks, i));
+
+        char* plaintextBlock = const_cast<char *>(
+                env->GetStringUTFChars(jPlaintextBlock, 0));
+
+        blockChain->addPrevSentBlock(plaintextBlock);
+    }
+
+    char* message = const_cast<char *>(env->GetStringUTFChars(jMessage, 0));
+    blockChain->buildSentBlock(message);
+
+    char* publicKey = const_cast<char *>(env->GetStringUTFChars(jPublicKey, 0));
+
+    char* plaintextBlock = blockChain->getLastSentBlock()->toJSON();
+    char* encryptedBlock = blockChain->getEncryptedBlock(publicKey);
+
+    jobjectArray jBlocks;
+
+    jBlocks = (jobjectArray)env->NewObjectArray(
+            2,
+            env->FindClass("java/lang/String"),
+            env->NewStringUTF(""));
+
+    env->SetObjectArrayElement(
+            jBlocks,
+            0,
+            env->NewStringUTF(plaintextBlock));
+
+    env->SetObjectArrayElement(
+            jBlocks,
+            1,
+            env->NewStringUTF(encryptedBlock));
+
+    return jBlocks;
+}
+
+extern "C"
+JNIEXPORT jobjectArray JNICALL
+Java_com_teamhowl_howl_models_BlockChain_cBuildGenesisBlock(JNIEnv *env, jobject thiz,
+    jstring jChatId,
+    jstring jPublicKey) {
+
+    howl::BlockChain::loadSSL();
+
+    char* chatId = const_cast<char *>(env->GetStringUTFChars(jChatId, 0));
+    char* publicKey = const_cast<char *>(env->GetStringUTFChars(jPublicKey, 0));
+    howl::BlockChain* blockChain = new howl::BlockChain(chatId);
+
+    blockChain->buildGenisisBlock();
+    char* plaintextBlock = blockChain->getLastSentBlock()->toJSON();
+    char* encryptedBlock = blockChain->getEncryptedBlock(publicKey);
+
+    jobjectArray jBlocks;
+
+    jBlocks = (jobjectArray)env->NewObjectArray(
+            2,
+            env->FindClass("java/lang/String"),
+            env->NewStringUTF(""));
+
+    env->SetObjectArrayElement(
+            jBlocks,
+            0,
+            env->NewStringUTF(plaintextBlock));
+
+    env->SetObjectArrayElement(
+            jBlocks,
+            1,
+            env->NewStringUTF(encryptedBlock));
+
+    return jBlocks;
+
 }
