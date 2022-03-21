@@ -311,7 +311,7 @@ Java_com_teamhowl_howl_models_BlockChain_cBuildReceivedMessages(JNIEnv *env, job
 
         env->SetObjectArrayElement(
                 jBlocks,
-                0,
+                i,
                 env->NewStringUTF(plaintextBlock));
     }
 

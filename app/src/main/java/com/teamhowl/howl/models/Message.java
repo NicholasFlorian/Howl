@@ -2,7 +2,7 @@ package com.teamhowl.howl.models;
 
 import java.sql.Date;
 
-public class Message {
+public class Message implements Comparable<Message> {
 
     public static final int SENT = 1;
     public static final int RECIEVED = 2;
@@ -24,7 +24,7 @@ public class Message {
 
         this.text = text;
         this.timeSent = timeSent;
-        this.timeReceived = new Date(0, 0, 0);
+        this.timeReceived = new Date(0);
         this.type = SENT;
     }
 
@@ -32,8 +32,8 @@ public class Message {
     public Message(String text, int type){
 
         this.text = text;
-        this.timeSent = new Date(0, 0, 0);
-        this.timeReceived = new Date(0, 0, 0);
+        this.timeSent = new Date(0);
+        this.timeReceived = new Date(0);
         this.type = type;
     }
 
@@ -53,4 +53,8 @@ public class Message {
         return type;
     }
 
+    @Override
+    public int compareTo(Message o) {
+        return Long.compare(this.timeSent.getTime(), o.getTimeSent().getTime());
+    }
 }

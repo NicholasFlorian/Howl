@@ -67,6 +67,8 @@ public class MessageActivity extends AppCompatActivity {
 
         blockChain.rerefresh();
         blockChain.buildAllMessages();
+
+        messageAdapter.clear();
         messageAdapter.updateMessages(blockChain.getMessages());
     }
 
@@ -79,7 +81,11 @@ public class MessageActivity extends AppCompatActivity {
 
         blockChain.rerefresh();
         blockChain.buildAllMessages();
+
+        messageAdapter.clear();
         messageAdapter.updateMessages(blockChain.getMessages());
+
+        messageTextView.setText("");
     }
 
 }

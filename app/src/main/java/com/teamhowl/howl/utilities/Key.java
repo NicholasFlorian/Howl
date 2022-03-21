@@ -5,7 +5,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 public class Key {
-    private static final String TAG = "HOWL :: KeyService:";
+    private static final String TAG = "HOWL :: KeyService";
 
     private final static String NAME = "com.teamhowl.howl.utilities.key";
     public final static String PUBLIC_KEY   = "PUBLIC";
@@ -37,7 +37,7 @@ public class Key {
         preferences.edit().putString(keyId, key).apply();
 
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
-        Log.d(TAG, "STORING :: " + keyId + " :: " + key);
+        Log.d(TAG, "STORING :: " + keyId + "\n" + key);
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
     }
 
@@ -58,7 +58,7 @@ public class Key {
         //    key = "NO_KEY";
 
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
-        Log.d(TAG, "RETRIEVING :: " + keyId + " :: " + key);
+        Log.d(TAG, "RETRIEVING :: " + keyId + "\n" + key);
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
 
         return key;

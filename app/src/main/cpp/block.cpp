@@ -17,7 +17,7 @@ namespace howl {
         _currentHash = nullptr;
         _merklerootHash = nullptr;
         _nonce = 0;
-        _timeSent = time(nullptr); // set the current time
+        _timeSent = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         _timeRecieved = 0;
     }
 
@@ -37,7 +37,7 @@ namespace howl {
             _message(message) {
 
         _nonce = 0;
-        _timeSent = time(nullptr); // set the current time
+        _timeSent = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         _timeRecieved = 0;
     }
 
@@ -60,7 +60,7 @@ namespace howl {
                 &_timeSent);
 
         _previousBlock = previousBlock;
-        _timeRecieved = time(nullptr);
+        _timeRecieved = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
         _calculateMerklerootHash();
         _calculateHash();

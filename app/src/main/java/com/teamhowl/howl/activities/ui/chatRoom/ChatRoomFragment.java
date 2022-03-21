@@ -14,10 +14,13 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.teamhowl.howl.activities.MessageActivity;
 import com.teamhowl.howl.controllers.ChatRoomAdapter;
+import com.teamhowl.howl.controllers.PendingBlockDao;
+import com.teamhowl.howl.controllers.StashedBlockDao;
 import com.teamhowl.howl.controllers.UserDao;
 import com.teamhowl.howl.databinding.FragmentChatRoomBinding;
 import com.teamhowl.howl.models.ChatRoom;
 import com.teamhowl.howl.models.User;
+import com.teamhowl.howl.repositories.BlockRoomDatabase;
 import com.teamhowl.howl.repositories.UserRoomDatabase;
 
 import java.util.ArrayList;
@@ -50,6 +53,32 @@ public class ChatRoomFragment extends Fragment {
                     chatRoomAdapter.getItem(position).getUser().getChatId());
 
                 startActivity(intent);
+            }
+        });
+
+        chatListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                String chatId = chatRoomAdapter.getItem(position).getUser().getChatId();
+
+                UserRoomDatabase userDatabase =
+                        UserRoomDatabase.getDatabase(getActivity().getApplicationContext());
+
+                BlockRoomDatabase blockRoomDatabase =
+                        BlockRoomDatabase.getDatabase(getActivity().getApplicationContext());
+
+                UserDao userDao = userDatabase.userDao();
+                PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
+                StashedBlockDao stashedBlockDao = blockRoomDatabase.stashedBlockDao();
+
+                userDao.deleteUsers(chatId);
+                pendingBlockDao.deleteBlocks(chatId);
+                stashedBlockDao.deleteBlocks(chatId);
+
+                onResume();
+
+                return true;
             }
         });
 

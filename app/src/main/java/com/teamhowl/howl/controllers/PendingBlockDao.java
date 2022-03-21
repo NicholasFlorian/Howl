@@ -16,7 +16,7 @@ public interface PendingBlockDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(PendingBlock pendingBlock);
 
-    @Query("SELECT * FROM pending_block_table WHERE chat_id LIKE :chatId ORDER BY version")
+    @Query("SELECT * FROM pending_block_table WHERE chat_id LIKE :chatId ORDER BY id")
     public List<PendingBlock> findBlocksByChatId(String chatId);
 
     @Query("DELETE FROM pending_block_table WHERE chat_id Like :chatId")

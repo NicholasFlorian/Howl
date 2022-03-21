@@ -22,6 +22,6 @@ public interface UserDao {
     public List<User> findAllUsers();
 
     @Query("DELETE FROM user_table WHERE chat_id Like :chatId")
-    public void deleteBlocks(String chatId);
+    public void deleteUsers(String chatId);
 
 }

@@ -17,8 +17,8 @@ import java.util.regex.Pattern;
 
 public class BlockChain {
 
-    private final String TAG = "HOWL :: BlockChain:";
-    private final String TAG_JNI = "HOWL :: BlockChain :: JNI:";
+    private final String TAG = "HOWL :: BlockChain";
+    private final String TAG_JNI = "HOWL :: BlockChain :: JNI";
 
     private static Pattern REGEX_MESSAGE;
     private static Pattern REGEX_TIME;
@@ -195,12 +195,15 @@ public class BlockChain {
 
         PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
 
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+        Log.d(TAG, "Sent Messages");
+
         for(PendingBlock block : pendingBlockDao.findBlocksByChatId(chatId)){
 
             // JSON parsing.
             String plaintextBlock = block.getPlaintextBlock();
 
-            Log.d(TAG, plaintextBlock);
+            Log.d(TAG, "\n" + plaintextBlock);
             Matcher messageMatcher = REGEX_MESSAGE.matcher(plaintextBlock);
             Matcher timeMatcher = REGEX_TIME.matcher(plaintextBlock);
 
@@ -216,7 +219,7 @@ public class BlockChain {
 
         buildReceivedMessages();
 
-        //messages.sort();
+        Collections.sort(messages);
     }
 
     private synchronized void buildReceivedMessages() {
@@ -236,20 +239,27 @@ public class BlockChain {
             encryptedBlocks.toArray(new String[encryptedBlocks.size()]),
             Key.retrieve(context, chatId, Key.PRIVATE_KEY, Key.LOCAL_KEY));
 
+        Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+        Log.d(TAG, "Received Messages");
+
         for(String plaintextBlock : plaintextBlocks){
 
-            Log.d(TAG, plaintextBlock);
+            Log.d(TAG, "\n" + plaintextBlock);
             Matcher messageMatcher = REGEX_MESSAGE.matcher(plaintextBlock);
             Matcher timeMatcher = REGEX_TIME.matcher(plaintextBlock);
 
-            messageMatcher.find();
-            timeMatcher.find();
+            if(messageMatcher.find() && timeMatcher.find()) {
 
-            String message = messageMatcher.group(1);
-            Date date = new Date(Long.parseLong(timeMatcher.group(1)));
+                String message = messageMatcher.group(1);
+                Date date = new Date(Long.parseLong(timeMatcher.group(1)));
 
-            Message newMessage = new Message(message, date, new Date(0));
-            messages.add(newMessage);
+                Message newMessage = new Message(message, date, new Date(0));
+                messages.add(newMessage);
+            }
+            else {
+                Message newMessage = new Message("FAILED_MESSAGE", new Date(0), new Date(0));
+                messages.add(newMessage);
+            }
         }
     }
 

@@ -29,6 +29,7 @@ import com.teamhowl.howl.R;
 import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.ActivityHomeBinding;
 import com.teamhowl.howl.models.User;
+import com.teamhowl.howl.repositories.BlockRoomDatabase;
 import com.teamhowl.howl.utilities.BluetoothService;
 
 import java.util.ArrayList;

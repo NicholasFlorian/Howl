@@ -16,7 +16,7 @@ public interface StashedBlockDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     public void insert(StashedBlock stashedBlock);
 
-    @Query("SELECT * FROM stashed_block_table WHERE chat_id LIKE :chatId ORDER BY version")
+    @Query("SELECT * FROM stashed_block_table WHERE chat_id LIKE :chatId ORDER BY id")
     public List<StashedBlock> findBlocksByChatId(String chatId);
 
     @Query("DELETE FROM stashed_block_table WHERE chat_id Like :chatId")

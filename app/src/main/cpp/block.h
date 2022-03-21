@@ -1,6 +1,6 @@
 
 #include <cstring>
-#include <ctime>
+#include <chrono>
 #include <math.h>
 
 namespace openSSL {

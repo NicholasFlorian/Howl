@@ -281,7 +281,7 @@ public class BluetoothService extends Service {
 
             String localUserId = Crypto.generateUserId(adapter.getName());
             communicateThread.write(localUserId);
-            String foreignUserId = communicateThread.read();
+            String foreignUserId = communicateThread.readSafe(126);
 
             String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
             User user = userDao.findUserByChatId(chatId);
@@ -290,6 +290,8 @@ public class BluetoothService extends Service {
                 createChatRoom();
             else
                 exchangeMessages();
+
+            disconnect();
         }
         catch(SecurityException e){
             Log.e(TAG, e.getMessage());
@@ -313,7 +315,7 @@ public class BluetoothService extends Service {
 
             String localUserId = Crypto.generateUserId(adapter.getName());
             communicateThread.write(localUserId);
-            String foreignUserId = communicateThread.read();
+            String foreignUserId = communicateThread.readSafe(126);
 
             String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
 
@@ -335,7 +337,7 @@ public class BluetoothService extends Service {
             String localPrivateKey = keys[1];
 
             communicateThread.write(localPublicKey);
-            String foreignPublicKey = communicateThread.read();
+            String foreignPublicKey = communicateThread.readSafe(774);
 
             Key.store(
                 getApplicationContext(),
@@ -365,7 +367,7 @@ public class BluetoothService extends Service {
             PendingBlock pendingBlock = blockChain.buildGenesisBlock();
 
             communicateThread.write(pendingBlock.getEncryptedBlock());
-            String encryptedBlock = communicateThread.read();
+            String encryptedBlock = communicateThread.readSafe(1024);
             StashedBlock stashedBlock = new StashedBlock(chatId, encryptedBlock);
 
             stashedBlockDao.insert(stashedBlock);
@@ -396,7 +398,7 @@ public class BluetoothService extends Service {
 
             String localUserId = Crypto.generateUserId(adapter.getName());
             communicateThread.write(localUserId);
-            String foreignUserId = communicateThread.read();
+            String foreignUserId = communicateThread.readSafe(126);
 
             String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
 
@@ -405,26 +407,28 @@ public class BluetoothService extends Service {
             int i = 0;
             int pendingBlockLength = pendingBlocks.size();
 
+
             boolean isReceiving = true;
             while (isReceiving) {
 
                 String response;
 
                 // If we are out of blocks send a fake one
-                if(i >= pendingBlockLength - 1){
+                if(i >= pendingBlockLength){
 
+                    Log.d(TAG, "SENDING EMPTY BLOCK: ");
                     communicateThread.write("EMPTY");
                 }
                 else{
 
                     Log.d(TAG, "SENDING BLOCK: ");
-                    communicateThread.write(pendingBlocks.get(i++).getEncryptedBlock());
+                    communicateThread.write(pendingBlocks.get(i).getEncryptedBlock());
                 }
 
-                response = communicateThread.read();
+                response = communicateThread.readSafe(1024);
                 if(response.equals("EMPTY")){
 
-                    if(i == pendingBlockLength - 1)
+                    if(i >= pendingBlockLength - 1)
                         isReceiving = false;
                 }
                 else{
@@ -432,9 +436,12 @@ public class BluetoothService extends Service {
                     StashedBlock stashedBlock = new StashedBlock(chatId, response);
                     stashedBlockDao.insert(stashedBlock);
                 }
+
+                i++;
             }
 
             Log.d(TAG, "Exchange Complete:");
+            sendThreadSafeToast("Exchanged Messages.");
         }
         catch(SecurityException e){
             Log.e(TAG, e.getMessage());
@@ -824,9 +831,9 @@ public class BluetoothService extends Service {
 
         }
 
-        public void write(String text) {
+        public synchronized void write(String text) {
 
-            Log.d(TAG, "SENDING: " + text);
+            Log.d(TAG, "SENDING: \n" + text);
 
             byte[] buffer = text.getBytes(CHARSET);
 
@@ -842,11 +849,49 @@ public class BluetoothService extends Service {
         }
 
         // This is a blocking thread
-        public String read() {
+        public synchronized String readSafe(int size) {
 
-            int bytes;
             byte[] buffer = new byte[1024];
-            String text;
+
+            // Keep listening to the InputStream while connected
+            if (currentState == STATE_CONNECTED) {
+
+                Log.d(TAG, "AWAITING MESSAGE SIZE: " + size);
+
+                try {
+
+                    String text = "";
+                    int bytes = 0;
+                    while(bytes < size){
+
+                        // Read from the InputStream
+                        int receivedBytes = inputStream.read(buffer);
+                        String receivedText = new String(buffer, 0, receivedBytes, CHARSET);
+
+                        bytes = bytes + receivedBytes;
+                        text = text + receivedText;
+
+                        if(receivedText.equals("EMPTY"))
+                            break;
+                    }
+                    Log.d(TAG, "RECEIVED MESSAGE: \n" + text);
+
+                    return text;
+                }
+                catch (IOException e) {
+
+                    Log.e(TAG, "disconnected", e);
+                    connectionLost();
+                }
+            }
+
+            return "";
+        }
+
+        // This is a blocking thread
+        public synchronized String read() {
+
+            byte[] buffer = new byte[1024];
 
             // Keep listening to the InputStream while connected
             if (currentState == STATE_CONNECTED) {
@@ -854,9 +899,11 @@ public class BluetoothService extends Service {
                 try {
 
                     // Read from the InputStream
-                    bytes = inputStream.read(buffer);
-                    text = new String(buffer, 0, bytes, CHARSET);
-                    Log.d(TAG, "RECEIVED MESSAGE: " + text);
+                    int bytes = inputStream.read(buffer);
+                    String text = new String(buffer, 0, bytes, CHARSET);
+
+                    Log.d(TAG, "RECEIVED MESSAGE: \n" + text);
+
                     return text;
                 }
                 catch (IOException e) {

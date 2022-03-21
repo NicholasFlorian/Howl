@@ -3,11 +3,12 @@ package com.teamhowl.howl.models;
 import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.Ignore;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
 import java.util.Date;
 
-@Entity(tableName = "pending_block_table")
+@Entity(tableName = "pending_block_table", indices = {@Index(value = {"encrypted_block"}, unique = true)})
 public class PendingBlock {
 
     @PrimaryKey(autoGenerate = true)

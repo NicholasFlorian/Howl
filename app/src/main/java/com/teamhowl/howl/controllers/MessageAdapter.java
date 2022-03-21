@@ -41,7 +41,7 @@ public class MessageAdapter extends ArrayAdapter<Message> {
                 sentMessage.setText(message.getText());
 
                 TextView sentTime1 = convertView.findViewById(R.id.sent_time1);
-                sentTime1.setText("sent:" + parseDate(message.getTimeSent()));
+                sentTime1.setText("sent: " + parseDate(message.getTimeSent()));
                 //sentTime1.setText("");
             }
             else if (message.getType() == Message.RECIEVED) {
@@ -55,7 +55,7 @@ public class MessageAdapter extends ArrayAdapter<Message> {
                 receivedMessage.setText(message.getText());
 
                 TextView receivedTime1 = convertView.findViewById(R.id.received_time1);
-                receivedTime1.setText("sent:" + parseDate(message.getTimeSent()));
+                receivedTime1.setText("sent: " + parseDate(message.getTimeSent()));
                 //receivedTime1.setText("");
 
                 TextView receivedTime2 = convertView.findViewById(R.id.received_time2);
