@@ -14,12 +14,12 @@
     <fragment
         android:id="@+id/navigation_dashboard"
         android:name="com.teamhowl.howl.activities.ui.connect.ConnectFragment"
-        android:label="@string/title_dashboard"
+        android:label="@string/title_connect"
         tools:layout="@layout/fragment_connect" />
 
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.teamhowl.howl.activities.ui.settings.SettingsFragment"
-        android:label="@string/title_notifications"
+        android:label="@string/title_settings"
         tools:layout="@layout/fragment_settings" />
 </navigation>
