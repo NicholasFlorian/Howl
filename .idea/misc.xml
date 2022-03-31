@@ -15,6 +15,7 @@
         <entry key="app/src/main/res/layout/fragment_chat_room.xml" value="0.23020833333333332" />
         <entry key="app/src/main/res/layout/fragment_connect.xml" value="0.1403985507246377" />
         <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.23020833333333332" />
+        <entry key="app/src/main/res/menu/bottom_nav_menu.xml" value="0.1" />
       </map>
     </option>
   </component>
