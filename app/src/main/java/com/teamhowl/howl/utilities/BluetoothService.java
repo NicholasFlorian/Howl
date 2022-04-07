@@ -1,5 +1,8 @@
 package com.teamhowl.howl.utilities;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -17,14 +20,14 @@ import android.os.ParcelUuid;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.core.app.NotificationCompat;
+
+import com.teamhowl.howl.R;
 import com.teamhowl.howl.controllers.PendingBlockDao;
-import com.teamhowl.howl.controllers.PooledBlockDao;
 import com.teamhowl.howl.controllers.StashedBlockDao;
 import com.teamhowl.howl.controllers.UserDao;
 import com.teamhowl.howl.models.BlockChain;
-import com.teamhowl.howl.models.BlockChainStub;
 import com.teamhowl.howl.models.PendingBlock;
-import com.teamhowl.howl.models.PooledBlock;
 import com.teamhowl.howl.models.StashedBlock;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.repositories.BlockRoomDatabase;
@@ -57,21 +60,14 @@ public class BluetoothService extends Service {
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
-    /*TODO implement these states later*/
-    /*
-     * STATE_LISTEN_EXCHANGE
-     * STATE_LISTEN_CREATE_CHATROOM
-     * STATE_CONNECTING_EXCHANGE
-     * STATE_CONNECTING_CREATEROOM
-     * STATE_CONNECTED_CHATROOM
-     * STATE_CONNECTED_EXCHANGE
-     */
-
     /** Internal Ui Commands */
     public static final int UI_TOAST = 1;
+    public static final int UI_NOTIF = 2;
 
     /** Internal Bundle Keys */
+    public static final String UI_KEY_TITLE = "KEY_UI_TITLE";
     public static final String UI_KEY_TEXT = "KEY_UI_TEXT";
+    public static final String UI_KEY_HARDNESS = "UI_KEY_HARDNESS";
 
     /** Incoming Handler Commands */
     public static final int MSG_SAY_HELLO = -1;
@@ -100,6 +96,16 @@ public class BluetoothService extends Service {
     private UserRoomDatabase userRoomDatabase;
     private ArrayList<User> localUsers;
 
+    /** Notification Manager **/
+    private boolean hasNotifications = false;
+    private String  notificationChannelId = "howl_channel_id";
+    CharSequence    notificationChanelName = "howl";
+    private int     notificationImportance = NotificationManager.IMPORTANCE_DEFAULT;
+    String          notificationDescription = "Notification for Howl messages.";
+    NotificationChannel notificationChannel;
+    NotificationManager notificationManager;
+
+
     /** Lifecycle of our service */
     @Override
     public void onCreate() {
@@ -115,6 +121,14 @@ public class BluetoothService extends Service {
         blockRoomDatabase = BlockRoomDatabase.getDatabase(getApplicationContext());
         userRoomDatabase = UserRoomDatabase.getDatabase(getApplicationContext());
         localUsers = new ArrayList<>();
+
+        notificationChannel = new NotificationChannel(
+                notificationChannelId,
+                notificationChanelName,
+                notificationImportance);
+        notificationChannel.setDescription(notificationDescription);
+        notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.createNotificationChannel(notificationChannel);
     }
 
     @Override
@@ -274,6 +288,9 @@ public class BluetoothService extends Service {
         communicateThread.start();
 
         try{
+
+            sendThreadSafeToast("Connecting...");
+
             UserDao userDao = userRoomDatabase.userDao();
 
             /** Exchange User Ids and Generate ChatId **/
@@ -286,10 +303,28 @@ public class BluetoothService extends Service {
             String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
             User user = userDao.findUserByChatId(chatId);
 
-            if(user == null)
+            if(user == null) {
+
+                sendThreadSafeToast("Creating Chat Room.");
                 createChatRoom();
-            else
+                sendThreadSafeToast("Created Chatroom.");
+
+                sendThreadSafeNotification(
+                        "Howl",
+                        "You created a Chat Room with " + device.getName(),
+                        false);
+            }
+            else {
+
+                sendThreadSafeNotification(
+                        "Howl",
+                        "Exchanging Blocks with " + device.getName(),
+                        true);
+
+                sendThreadSafeToast("Exchanging Messages.");
                 exchangeMessages();
+                sendThreadSafeToast("Exchanged Messages.");
+            }
 
             disconnect();
         }
@@ -374,8 +409,6 @@ public class BluetoothService extends Service {
             pendingBlockDao.insert(pendingBlock);
 
             Log.d(TAG, "Create Chat Room Complete:");
-
-            sendThreadSafeToast("Created Chatroom.");
         }
         catch(SecurityException e){
             Log.e(TAG, e.getMessage());
@@ -441,7 +474,6 @@ public class BluetoothService extends Service {
             }
 
             Log.d(TAG, "Exchange Complete:");
-            sendThreadSafeToast("Exchanged Messages.");
         }
         catch(SecurityException e){
             Log.e(TAG, e.getMessage());
@@ -508,6 +540,7 @@ public class BluetoothService extends Service {
         }
     }
 
+    /** Handler of internal thread safe UI requests to the Fragments or Activities */
     public void sendThreadSafeToast(String text) {
 
         Message message = internalHandler.obtainMessage(UI_TOAST);
@@ -517,7 +550,17 @@ public class BluetoothService extends Service {
         message.sendToTarget();
     }
 
-    /** Handler of internal thread safe UI requests to the Fragments or Activities */
+    public void sendThreadSafeNotification(String title, String text, boolean isSoft){
+
+        Message message = internalHandler.obtainMessage(UI_NOTIF);
+        Bundle bundle = new Bundle();
+        bundle.putString(UI_KEY_TITLE, title);
+        bundle.putString(UI_KEY_TEXT, text);
+        bundle.putBoolean(UI_KEY_HARDNESS, isSoft);
+        message.setData(bundle);
+        message.sendToTarget();
+    }
+
     Handler internalHandler = new Handler(Looper.getMainLooper()) {
 
         @Override
@@ -526,15 +569,42 @@ public class BluetoothService extends Service {
             switch (message.what) {
 
                 case UI_TOAST:
-                default:
 
-                    Bundle bundle = message.getData();
-                    String text = bundle.getString(UI_KEY_TEXT);
+                    Bundle toastBundle = message.getData();
+                    String toastText = toastBundle.getString(UI_KEY_TEXT);
                     Toast.makeText(
                         getApplicationContext(),
-                        text,
+                        toastText,
                         Toast.LENGTH_SHORT).show();
 
+                    break;
+                case UI_NOTIF:
+
+                    Bundle notificationBundle = message.getData();
+                    String notificationTitle =  notificationBundle.getString(UI_KEY_TITLE);
+                    String notificationText = notificationBundle.getString(UI_KEY_TEXT);
+                    boolean isSoft = notificationBundle.getBoolean(UI_KEY_HARDNESS);
+
+                    Intent intent = new Intent(getApplicationContext(), Notifications.class);
+                    PendingIntent pendingIntent = PendingIntent.getActivity(
+                        getApplicationContext(),
+                        0,
+                        intent,
+                        PendingIntent.FLAG_IMMUTABLE);
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), notificationChannelId)
+                        .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                        .setContentTitle(notificationTitle)
+                        .setContentText(notificationText)
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true);
+                        builder.setSilent(isSoft);
+
+                    notificationManager.notify(1, builder.build());
+
+                    break;
+                default:
                     break;
             }
         }

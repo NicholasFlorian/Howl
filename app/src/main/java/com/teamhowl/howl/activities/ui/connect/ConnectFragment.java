@@ -82,7 +82,6 @@ public class ConnectFragment extends Fragment {
         View root = binding.getRoot();
 
         ListView userListView = binding.connectListView;
-        Button sendMessageButton = binding.sendMessageButton;
 
         // Create list view functionality
         userAdapter = new UserAdapter(getContext());
@@ -112,16 +111,6 @@ public class ConnectFragment extends Fragment {
             }
         });
 
-        // Add action when the button is pressed
-        sendMessageButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                //testBlockChain();
-                BlockChain.testMainCode();
-                //sendMessage();
-            }
-        });
 
         // Request the device discoverable when they open this page.
         Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
