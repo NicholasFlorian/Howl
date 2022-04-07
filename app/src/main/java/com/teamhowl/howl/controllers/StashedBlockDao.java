@@ -19,6 +19,9 @@ public interface StashedBlockDao {
     @Query("SELECT * FROM stashed_block_table WHERE chat_id LIKE :chatId ORDER BY id")
     public List<StashedBlock> findBlocksByChatId(String chatId);
 
+    @Query("SELECT * FROM stashed_block_table WHERE encrypted_block LIKE :encryptedBlock LIMIT 1")
+    public StashedBlock getBlock(String encryptedBlock);
+
     @Query("DELETE FROM stashed_block_table WHERE chat_id Like :chatId")
     public void deleteBlocks(String chatId);
 

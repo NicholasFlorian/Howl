@@ -64,10 +64,17 @@ public class BluetoothService extends Service {
     public static final int UI_TOAST = 1;
     public static final int UI_NOTIF = 2;
 
+    /** Internal Ui Notification IDs */
+    public static final int NOTIF_CHATROOM = 0;
+    public static final int NOTIF_RECEIVED = 10000;
+    public static final int NOTIF_EXCHANGE = 20000;
+
     /** Internal Bundle Keys */
     public static final String UI_KEY_TITLE = "KEY_UI_TITLE";
     public static final String UI_KEY_TEXT = "KEY_UI_TEXT";
     public static final String UI_KEY_HARDNESS = "UI_KEY_HARDNESS";
+    public static final String UI_KEY_ID = "UI_KEY_ID";
+    public static final String UI_USER_ID = "UI_USER_ID";
 
     /** Incoming Handler Commands */
     public static final int MSG_SAY_HELLO = -1;
@@ -312,17 +319,21 @@ public class BluetoothService extends Service {
                 sendThreadSafeNotification(
                         "Howl",
                         "You created a Chat Room with " + device.getName(),
-                        false);
+                        false,
+                        NOTIF_CHATROOM,
+                        1);
             }
             else {
 
                 sendThreadSafeNotification(
                         "Howl",
                         "Exchanging Blocks with " + device.getName(),
-                        true);
+                        true,
+                        NOTIF_EXCHANGE,
+                        1);
 
                 sendThreadSafeToast("Exchanging Messages.");
-                exchangeMessages();
+                exchangeMessages(device.getName());
                 sendThreadSafeToast("Exchanged Messages.");
             }
 
@@ -417,7 +428,7 @@ public class BluetoothService extends Service {
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
     }
 
-    private synchronized void exchangeMessages() {
+    private synchronized void exchangeMessages(String name) {
 
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
         Log.d(TAG, "exchangeMessages:");
@@ -441,6 +452,7 @@ public class BluetoothService extends Service {
             int pendingBlockLength = pendingBlocks.size();
 
 
+            boolean newMessage = false;
             boolean isReceiving = true;
             while (isReceiving) {
 
@@ -467,6 +479,22 @@ public class BluetoothService extends Service {
                 else{
 
                     StashedBlock stashedBlock = new StashedBlock(chatId, response);
+                    
+                    if(stashedBlockDao.getBlock(response) == null) {
+
+                        if (newMessage == false) {
+
+                            sendThreadSafeNotification(
+                                    "Howl",
+                                    "New Message from " + name,
+                                    false,
+                                    NOTIF_RECEIVED,
+                                    1);
+
+                            newMessage = true;
+                        }
+                    }
+
                     stashedBlockDao.insert(stashedBlock);
                 }
 
@@ -550,13 +578,15 @@ public class BluetoothService extends Service {
         message.sendToTarget();
     }
 
-    public void sendThreadSafeNotification(String title, String text, boolean isSoft){
+    public void sendThreadSafeNotification(String title, String text, boolean isSoft, int id, int userId){
 
         Message message = internalHandler.obtainMessage(UI_NOTIF);
         Bundle bundle = new Bundle();
         bundle.putString(UI_KEY_TITLE, title);
         bundle.putString(UI_KEY_TEXT, text);
         bundle.putBoolean(UI_KEY_HARDNESS, isSoft);
+        bundle.putInt(UI_KEY_ID, id);
+        bundle.putInt(UI_USER_ID, id);
         message.setData(bundle);
         message.sendToTarget();
     }
@@ -584,6 +614,8 @@ public class BluetoothService extends Service {
                     String notificationTitle =  notificationBundle.getString(UI_KEY_TITLE);
                     String notificationText = notificationBundle.getString(UI_KEY_TEXT);
                     boolean isSoft = notificationBundle.getBoolean(UI_KEY_HARDNESS);
+                    int id = notificationBundle.getInt(UI_KEY_HARDNESS);
+                    int userId = notificationBundle.getInt(UI_USER_ID);
 
                     Intent intent = new Intent(getApplicationContext(), Notifications.class);
                     PendingIntent pendingIntent = PendingIntent.getActivity(
@@ -601,7 +633,7 @@ public class BluetoothService extends Service {
                         .setAutoCancel(true);
                         builder.setSilent(isSoft);
 
-                    notificationManager.notify(1, builder.build());
+                    notificationManager.notify(id + userId, builder.build());
 
                     break;
                 default:
