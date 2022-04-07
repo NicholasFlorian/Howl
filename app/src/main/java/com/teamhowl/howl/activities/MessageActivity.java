@@ -2,7 +2,14 @@ package com.teamhowl.howl.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
@@ -19,10 +26,37 @@ import com.teamhowl.howl.models.PendingBlock;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.repositories.BlockRoomDatabase;
 import com.teamhowl.howl.repositories.UserRoomDatabase;
+import com.teamhowl.howl.utilities.BluetoothService;
 
 import java.text.BreakIterator;
 
 public class MessageActivity extends AppCompatActivity {
+
+    /** Messenger for communicating with the service. */
+    Messenger bluetoothServiceMessenger = null;
+    boolean isMessengerBound;
+
+    /** Our service connection for the Bluetooth Service*/
+    ServiceConnection bluetoothServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the object we can use to
+            // interact with the service.  We are communicating with the
+            // service using a Messenger, so here we get a client-side
+            // representation of that from the raw IBinder object.
+            bluetoothServiceMessenger = new Messenger(service);
+            isMessengerBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            bluetoothServiceMessenger = null;
+            isMessengerBound = false;
+        }
+    };
 
     /** Bundle Keys */
     public static final String KEY_CHAT_ID = "KEY_CHAT_ID";
@@ -62,6 +96,16 @@ public class MessageActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+
+        this.bindService(
+                new Intent(this, BluetoothService.class),
+                bluetoothServiceConnection,
+                Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -76,16 +120,50 @@ public class MessageActivity extends AppCompatActivity {
 
         PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
 
-        PendingBlock block = blockChain.buildSentMessage(messageTextView.getText().toString());
+        String text = messageTextView.getText().toString();
+        //TODO SPLIT evenlu every 56 characters START LOOP
+        if (text.equals(""))
+            return;
+
+        PendingBlock block = blockChain.buildSentMessage(text);
         pendingBlockDao.insert(block);
+
+        // TODO END LOOP
+
+        messageTextView.setText("");
 
         blockChain.rerefresh();
         blockChain.buildAllMessages();
-
         messageAdapter.clear();
         messageAdapter.updateMessages(blockChain.getMessages());
 
-        messageTextView.setText("");
+        exchangeMessages();
+
+        blockChain.rerefresh();
+        blockChain.buildAllMessages();
+        messageAdapter.clear();
+        messageAdapter.updateMessages(blockChain.getMessages());
+    }
+
+    public void exchangeMessages(){
+
+        android.os.Message message = android.os.Message.obtain(
+                null,
+                BluetoothService.MSG_ATTEMPT_AUTOCONNECT,
+                0,
+                0);
+
+        Bundle bundle = new Bundle();
+        bundle.putString(BluetoothService.KEY_SERVICE_DEVICE, chatId);
+
+        message.setData(bundle);
+
+        try {
+            bluetoothServiceMessenger.send(message);
+        }
+        catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
 }

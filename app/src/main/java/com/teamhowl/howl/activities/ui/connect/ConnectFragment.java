@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -28,11 +27,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.FragmentConnectBinding;
-import com.teamhowl.howl.models.BlockChain;
-import com.teamhowl.howl.models.PendingBlock;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.utilities.BluetoothService;
-import com.teamhowl.howl.utilities.Crypto;
 
 import java.util.ArrayList;
 
@@ -107,7 +103,7 @@ public class ConnectFragment extends Fragment {
 
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                createChatRoom(userAdapter.getItem(position).getDevice());
+                connect(userAdapter.getItem(position).getDevice());
             }
         });
 
@@ -139,29 +135,6 @@ public class ConnectFragment extends Fragment {
 
         userAdapter.clear();
         startDiscovery();
-    }
-
-    public void testBlockChain(){
-
-    }
-
-    public void sendMessage() {
-
-        if(!isMessengerBound)
-            return;
-
-        Message message = Message.obtain(
-            null,
-            BluetoothService.MSG_SAY_HELLO,
-            0,
-            0);
-
-        try {
-            messenger.send(message);
-        }
-        catch (RemoteException e) {
-            e.printStackTrace();
-        }
     }
 
     public void startDiscovery() {
@@ -212,14 +185,14 @@ public class ConnectFragment extends Fragment {
         }
     }
 
-    public void createChatRoom(BluetoothDevice device){
+    public void connect(BluetoothDevice device){
 
         if(!isMessengerBound)
             return;
 
         Message message = Message.obtain(
             null,
-            BluetoothService.MSG_CREATE_CHAT_ROOM,
+            BluetoothService.MSG_CONNECT,
             0,
             0);
 
