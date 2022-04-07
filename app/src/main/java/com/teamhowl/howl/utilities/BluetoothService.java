@@ -5,8 +5,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -18,13 +20,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.teamhowl.howl.controllers.PendingBlockDao;
-import com.teamhowl.howl.controllers.PooledBlockDao;
 import com.teamhowl.howl.controllers.StashedBlockDao;
 import com.teamhowl.howl.controllers.UserDao;
 import com.teamhowl.howl.models.BlockChain;
-import com.teamhowl.howl.models.BlockChainStub;
 import com.teamhowl.howl.models.PendingBlock;
-import com.teamhowl.howl.models.PooledBlock;
 import com.teamhowl.howl.models.StashedBlock;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.repositories.BlockRoomDatabase;
@@ -52,20 +51,8 @@ public class BluetoothService extends Service {
     /** Thread states */
     public static final int STATE_NONE = 0;       // we're doing nothing
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
-    public static final int STATE_LISTEN_EXCHANGE = -1; // TODO
-    public static final int STATE_LISTEN_CREATE_CHATROOM = -2; //TODO
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
-
-    /*TODO implement these states later*/
-    /*
-     * STATE_LISTEN_EXCHANGE
-     * STATE_LISTEN_CREATE_CHATROOM
-     * STATE_CONNECTING_EXCHANGE
-     * STATE_CONNECTING_CREATEROOM
-     * STATE_CONNECTED_CHATROOM
-     * STATE_CONNECTED_EXCHANGE
-     */
 
     /** Internal Ui Commands */
     public static final int UI_TOAST = 1;
@@ -74,10 +61,9 @@ public class BluetoothService extends Service {
     public static final String UI_KEY_TEXT = "KEY_UI_TEXT";
 
     /** Incoming Handler Commands */
-    public static final int MSG_SAY_HELLO = -1;
     public static final int MSG_START_DISCOVERY = 1;
     public static final int MSG_CREATE_CHAT_ROOM = 2;
-    public static final int MSG_EXCHANGE_BLOCKS = 3;
+    public static final int MSG_ATTEMPT_AUTO_CONNECT = 3;
 
     /** Bundle Keys */
     public static final String KEY_SERVICE_DEVICE = "KEY_SERVICE_DEVICE";
@@ -92,13 +78,13 @@ public class BluetoothService extends Service {
     private AcceptThread acceptThread;
     private ConnectThread connectThread;
     private CommunicateThread communicateThread;
-    private TimeoutThread timeoutThread;
     private int currentState;
 
     /** Data Management */
     private BlockRoomDatabase blockRoomDatabase;
     private UserRoomDatabase userRoomDatabase;
-    private ArrayList<User> localUsers;
+    private ArrayList<BluetoothDevice> previouslyBondedDevices;
+    private ArrayList<User> foreignUsers;
 
     /** Lifecycle of our service */
     @Override
@@ -114,7 +100,8 @@ public class BluetoothService extends Service {
 
         blockRoomDatabase = BlockRoomDatabase.getDatabase(getApplicationContext());
         userRoomDatabase = UserRoomDatabase.getDatabase(getApplicationContext());
-        localUsers = new ArrayList<>();
+        previouslyBondedDevices = new ArrayList<>();
+        foreignUsers = new ArrayList<>();
     }
 
     @Override
@@ -146,7 +133,10 @@ public class BluetoothService extends Service {
         return secure ? "Secure" : "Insecure";
     }
 
-    /** Status Operations*/
+    /** Status Operations
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     */
+
     private synchronized void updateState(int newState){
 
         String oldStateString = getStateString(currentState);
@@ -233,6 +223,13 @@ public class BluetoothService extends Service {
             }
         }
 
+//        if (currentState == STATE_CONNECTED) {
+//            if (connectThread != null) {
+//                connectThread.cancel();
+//                connectThread = null;
+//            }
+//        }
+
         // Cancel any thread currently running a connection
         if (communicateThread != null) {
             communicateThread.cancel();
@@ -286,23 +283,25 @@ public class BluetoothService extends Service {
             String chatId = Crypto.generateSortChatId(localUserId, foreignUserId);
             User user = userDao.findUserByChatId(chatId);
 
+            // if the user does not exist create a chatroom, otherwise exchange blocks
             if(user == null)
                 createChatRoom();
             else
                 exchangeMessages();
 
-            disconnect();
+            //disconnect(); //
         }
         catch(SecurityException e){
             Log.e(TAG, e.getMessage());
         }
-
     }
 
     private synchronized void createChatRoom() {
 
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
         Log.d(TAG, "createChatRoom:");
+
+        sendThreadSafeToast("Creating Chatroom.");
 
         try {
 
@@ -389,6 +388,8 @@ public class BluetoothService extends Service {
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
         Log.d(TAG, "exchangeMessages:");
 
+        //sendThreadSafeToast("Exchanging Messages.");
+
         try{
             PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
             StashedBlockDao stashedBlockDao = blockRoomDatabase.stashedBlockDao();
@@ -447,6 +448,7 @@ public class BluetoothService extends Service {
             Log.e(TAG, e.getMessage());
         }
 
+        sendThreadSafeToast("Exchange complete");
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
     }
 
@@ -476,19 +478,6 @@ public class BluetoothService extends Service {
         this.start();
     }
 
-    private void write(String out) {
-        // Create temporary object
-        CommunicateThread r;
-
-        // Synchronize a copy of the ConnectedThread
-        synchronized (this) {
-            if (currentState != STATE_CONNECTED) return;
-            r = communicateThread;
-        }
-        // Perform the write unsynchronized
-        r.write(out);
-    }
-
     public void startDiscovery() {
         Log.d(TAG, "Running: startDiscovery()");
 
@@ -496,10 +485,37 @@ public class BluetoothService extends Service {
             if (adapter.isDiscovering()) {
 
                 Log.d(TAG, "Operator is already discovering.");
-                adapter.startDiscovery();
             } else {
 
                 adapter.startDiscovery();
+
+                // Connect to Bluetooth
+                try {
+                    BroadcastReceiver receiver = new BroadcastReceiver() {
+                        public void onReceive(Context context, Intent intent) {
+                            String action = intent.getAction();
+
+                            // Finding devices
+                            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+
+                                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                                foreignUsers.add(new User(device));
+                            }
+                        }
+                    };
+
+                    // Register our receiver to begin listening for new devices
+                    IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+                    getApplicationContext().registerReceiver(receiver, filter);
+
+                }
+                catch (SecurityException e) {
+
+                    Toast.makeText(
+                            getApplicationContext(),
+                            "SCAN FAILED \n" + e.toString(),
+                            Toast.LENGTH_LONG).show();
+                }
             }
         }
         catch(SecurityException e){
@@ -508,6 +524,48 @@ public class BluetoothService extends Service {
         }
     }
 
+    public void attemptAutoConnect(){
+        Log.d(TAG, "Running: attemptAutoConnect()");
+
+        try{
+
+            UserDao userDao = userRoomDatabase.userDao();
+            String localUserId = Crypto.generateUserId(adapter.getName());
+
+            previouslyBondedDevices.clear();
+            previouslyBondedDevices.addAll(adapter.getBondedDevices());
+
+            for(BluetoothDevice device: previouslyBondedDevices){
+
+                String foreignUserId = Crypto.generateUserId(device.getName());
+                String tempChatId = Crypto.generateSortChatId(localUserId, foreignUserId);
+                User user = userDao.findUserByChatId(tempChatId);
+
+                if(user != null) {
+
+                    String correctAddress = device.getAddress();
+
+                    Log.d(TAG, "Bonded Device Found" + correctAddress);
+                    for(User confirmUser : foreignUsers){
+
+                        BluetoothDevice confirmDevice = confirmUser.getDevice();
+                        if(confirmDevice.getAddress().equals(correctAddress)){
+
+                            Log.d(TAG, "DEVICE FOUND FOUND FOUND");
+                            connect(confirmDevice,true);
+                        }
+                    }
+                }
+            }
+        }
+        catch(SecurityException e){
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
+    /** Internal UI Calls
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     */
     public void sendThreadSafeToast(String text) {
 
         Message message = internalHandler.obtainMessage(UI_TOAST);
@@ -540,7 +598,9 @@ public class BluetoothService extends Service {
         }
     };
 
-    /** Handler of incoming messages from Fragments or Activities */
+    /** Handler of incoming messages from Fragments or Activities
+     *  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     */
     private final class IncomingHandler extends Handler {
 
         private Context applicationContext;
@@ -553,23 +613,25 @@ public class BluetoothService extends Service {
         public void handleMessage(Message message) {
 
             switch (message.what) {
-                case MSG_SAY_HELLO:
 
-                    Toast.makeText(applicationContext, Crypto.generateUserId("LOCAL_ADDRESS"), Toast.LENGTH_SHORT).show();
-                    break;
                 case MSG_START_DISCOVERY:
 
                     startDiscovery();
                     break;
+
                 case MSG_CREATE_CHAT_ROOM:
 
-                    Bundle bundle = message.getData();
-                    BluetoothDevice device = bundle.getParcelable(KEY_SERVICE_DEVICE);
+                    Bundle createChatBundle = message.getData();
+                    BluetoothDevice device = createChatBundle.getParcelable(KEY_SERVICE_DEVICE);
                     connect(device, true);
                     break;
-                case MSG_EXCHANGE_BLOCKS:
+
+                case MSG_ATTEMPT_AUTO_CONNECT:
+
+                    attemptAutoConnect();
 
                     break;
+
                 default:
                     super.handleMessage(message);
             }
@@ -582,10 +644,8 @@ public class BluetoothService extends Service {
      */
     @Override
     public IBinder onBind(Intent intent) {
-        
-        Toast.makeText(getApplicationContext(), "binding", Toast.LENGTH_SHORT).show();
+
         messenger = new Messenger(new IncomingHandler(this));
-        
         return messenger.getBinder();
     }
 
@@ -929,9 +989,4 @@ public class BluetoothService extends Service {
             }
         }
     }
-
-    private class TimeoutThread extends Thread {
-
-    }
-
 }

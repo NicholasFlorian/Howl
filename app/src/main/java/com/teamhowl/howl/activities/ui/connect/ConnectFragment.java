@@ -17,7 +17,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -28,18 +27,15 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.teamhowl.howl.controllers.UserAdapter;
 import com.teamhowl.howl.databinding.FragmentConnectBinding;
-import com.teamhowl.howl.models.BlockChain;
-import com.teamhowl.howl.models.PendingBlock;
 import com.teamhowl.howl.models.User;
 import com.teamhowl.howl.utilities.BluetoothService;
-import com.teamhowl.howl.utilities.Crypto;
 
 import java.util.ArrayList;
 
 public class ConnectFragment extends Fragment {
 
     /** Messenger for communicating with the service. */
-    Messenger messenger = null;
+    Messenger bluetoothServiceMessenger = null;
     boolean isMessengerBound;
 
     /** Our service connection for the Bluetooth Service*/
@@ -51,7 +47,7 @@ public class ConnectFragment extends Fragment {
             // interact with the service.  We are communicating with the
             // service using a Messenger, so here we get a client-side
             // representation of that from the raw IBinder object.
-            messenger = new Messenger(service);
+            bluetoothServiceMessenger = new Messenger(service);
             isMessengerBound = true;
         }
 
@@ -59,7 +55,7 @@ public class ConnectFragment extends Fragment {
         public void onServiceDisconnected(ComponentName name) {
             // This is called when the connection with the service has been
             // unexpectedly disconnected -- that is, its process crashed.
-            messenger = null;
+            bluetoothServiceMessenger = null;
             isMessengerBound = false;
         }
     };
@@ -82,7 +78,6 @@ public class ConnectFragment extends Fragment {
         View root = binding.getRoot();
 
         ListView userListView = binding.connectListView;
-        Button sendMessageButton = binding.sendMessageButton;
 
         // Create list view functionality
         userAdapter = new UserAdapter(getContext());
@@ -109,17 +104,6 @@ public class ConnectFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 createChatRoom(userAdapter.getItem(position).getDevice());
-            }
-        });
-
-        // Add action when the button is pressed
-        sendMessageButton.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View view) {
-                //testBlockChain();
-                BlockChain.testMainCode();
-                //sendMessage();
             }
         });
 
@@ -152,26 +136,15 @@ public class ConnectFragment extends Fragment {
         startDiscovery();
     }
 
-    public void testBlockChain(){
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
 
-    }
-
-    public void sendMessage() {
-
-        if(!isMessengerBound)
-            return;
-
-        Message message = Message.obtain(
-            null,
-            BluetoothService.MSG_SAY_HELLO,
-            0,
-            0);
-
-        try {
-            messenger.send(message);
-        }
-        catch (RemoteException e) {
-            e.printStackTrace();
+        userAdapter.clear();
+        binding = null;
+        if (isMessengerBound) {
+            getActivity().unbindService(bluetoothServiceConnection);
+            isMessengerBound = false;
         }
     }
 
@@ -188,11 +161,13 @@ public class ConnectFragment extends Fragment {
                 0);
 
         try {
-            messenger.send(message);
+            bluetoothServiceMessenger.send(message);
         }
         catch (RemoteException e) {
             e.printStackTrace();
         }
+
+        userAdapter.clear();
 
         // Connect to Bluetooth
         try {
@@ -240,22 +215,10 @@ public class ConnectFragment extends Fragment {
         message.setData(bundle);
 
         try {
-            messenger.send(message);
+            bluetoothServiceMessenger.send(message);
         }
         catch (RemoteException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-
-        userAdapter.clear();
-        binding = null;
-        if (isMessengerBound) {
-            getActivity().unbindService(bluetoothServiceConnection);
-            isMessengerBound = false;
         }
     }
 
