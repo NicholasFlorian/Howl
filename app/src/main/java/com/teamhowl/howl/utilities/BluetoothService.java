@@ -55,8 +55,6 @@ public class BluetoothService extends Service {
     /** Thread states */
     public static final int STATE_NONE = 0;       // we're doing nothing
     public static final int STATE_LISTEN = 1;     // now listening for incoming connections
-    public static final int STATE_LISTEN_EXCHANGE = -1; // TODO
-    public static final int STATE_LISTEN_CREATE_CHATROOM = -2; //TODO
     public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
     public static final int STATE_CONNECTED = 3;  // now connected to a remote device
 
@@ -79,8 +77,8 @@ public class BluetoothService extends Service {
     /** Incoming Handler Commands */
     public static final int MSG_SAY_HELLO = -1;
     public static final int MSG_START_DISCOVERY = 1;
-    public static final int MSG_CREATE_CHAT_ROOM = 2;
-    public static final int MSG_EXCHANGE_BLOCKS = 3;
+    public static final int MSG_CONNECT = 2;
+    public static final int MSG_ATTEMPT_AUTOCONNECT = 3;
 
     /** Bundle Keys */
     public static final String KEY_SERVICE_DEVICE = "KEY_SERVICE_DEVICE";
@@ -95,13 +93,11 @@ public class BluetoothService extends Service {
     private AcceptThread acceptThread;
     private ConnectThread connectThread;
     private CommunicateThread communicateThread;
-    private TimeoutThread timeoutThread;
     private int currentState;
 
     /** Data Management */
     private BlockRoomDatabase blockRoomDatabase;
     private UserRoomDatabase userRoomDatabase;
-    private ArrayList<User> localUsers;
 
     /** Notification Manager **/
     private boolean hasNotifications = false;
@@ -111,6 +107,7 @@ public class BluetoothService extends Service {
     String          notificationDescription = "Notification for Howl messages.";
     NotificationChannel notificationChannel;
     NotificationManager notificationManager;
+
 
 
     /** Lifecycle of our service */
@@ -127,7 +124,6 @@ public class BluetoothService extends Service {
 
         blockRoomDatabase = BlockRoomDatabase.getDatabase(getApplicationContext());
         userRoomDatabase = UserRoomDatabase.getDatabase(getApplicationContext());
-        localUsers = new ArrayList<>();
 
         notificationChannel = new NotificationChannel(
                 notificationChannelId,
@@ -473,7 +469,7 @@ public class BluetoothService extends Service {
                 response = communicateThread.readSafe(1024);
                 if(response.equals("EMPTY")){
 
-                    if(i >= pendingBlockLength - 1)
+                    if(i >= pendingBlockLength)// REMOVED -1
                         isReceiving = false;
                 }
                 else{
@@ -508,6 +504,34 @@ public class BluetoothService extends Service {
         }
 
         Log.d(TAG, "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+    }
+
+    private synchronized void attemptAutoConnect(){
+        Log.d(TAG, "Running: attemptAutoConnect()");
+
+        try {
+
+            UserDao userDao = userRoomDatabase.userDao();
+            String localUserId = Crypto.generateUserId(adapter.getName());
+
+            for (BluetoothDevice bondedDevice : adapter.getBondedDevices()) {
+
+                String foreignUserId = Crypto.generateUserId(bondedDevice.getName());
+                String tempChatId = Crypto.generateSortChatId(localUserId, foreignUserId);
+                User user = userDao.findUserByChatId(tempChatId);
+
+                if(user != null){
+
+                    BluetoothDevice actualDevice =
+                            adapter.getRemoteDevice(bondedDevice.getAddress());
+
+                    connect(actualDevice, true);
+                }
+            }
+        }
+        catch(SecurityException e){
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     private void connectionFailed() {
@@ -586,7 +610,7 @@ public class BluetoothService extends Service {
         bundle.putString(UI_KEY_TEXT, text);
         bundle.putBoolean(UI_KEY_HARDNESS, isSoft);
         bundle.putInt(UI_KEY_ID, id);
-        bundle.putInt(UI_USER_ID, id);
+        bundle.putInt(UI_USER_ID, userId);
         message.setData(bundle);
         message.sendToTarget();
     }
@@ -614,7 +638,7 @@ public class BluetoothService extends Service {
                     String notificationTitle =  notificationBundle.getString(UI_KEY_TITLE);
                     String notificationText = notificationBundle.getString(UI_KEY_TEXT);
                     boolean isSoft = notificationBundle.getBoolean(UI_KEY_HARDNESS);
-                    int id = notificationBundle.getInt(UI_KEY_HARDNESS);
+                    int id = notificationBundle.getInt(UI_USER_ID);
                     int userId = notificationBundle.getInt(UI_USER_ID);
 
                     Intent intent = new Intent(getApplicationContext(), Notifications.class);
@@ -659,19 +683,23 @@ public class BluetoothService extends Service {
 
                     Toast.makeText(applicationContext, Crypto.generateUserId("LOCAL_ADDRESS"), Toast.LENGTH_SHORT).show();
                     break;
+
                 case MSG_START_DISCOVERY:
 
                     startDiscovery();
                     break;
-                case MSG_CREATE_CHAT_ROOM:
+
+                case MSG_CONNECT:
 
                     Bundle bundle = message.getData();
                     BluetoothDevice device = bundle.getParcelable(KEY_SERVICE_DEVICE);
                     connect(device, true);
                     break;
-                case MSG_EXCHANGE_BLOCKS:
+                case MSG_ATTEMPT_AUTOCONNECT:
 
+                    attemptAutoConnect();
                     break;
+
                 default:
                     super.handleMessage(message);
             }
@@ -1030,10 +1058,6 @@ public class BluetoothService extends Service {
                 Log.e(TAG, "close() of connect socket failed", e);
             }
         }
-    }
-
-    private class TimeoutThread extends Thread {
-
     }
 
 }
