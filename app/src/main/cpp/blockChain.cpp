@@ -5,7 +5,7 @@ namespace howl {
 
     BlockChain::BlockChain(char* chatId) {
 
-        _chatId = (char*) malloc(sizeof(char*) * (SHA512_HEX_DIGEST_LENGTH + 1));
+        _chatId = (char*) malloc(sizeof(char) * (SHA512_HEX_DIGEST_LENGTH + 1));
         sprintf(_chatId, "%s", chatId);
         _sentLength = 0;
         _receivedLength = 0;
@@ -41,8 +41,14 @@ namespace howl {
                 initialMerklerootHash,
                 initialMessage);
 
-        //(*genBlock).mine(_work);
+        // TODO, could be messing causing memory issues.
+        (*genBlock).mine(_work);
         _sentHead = genBlock;
+
+        free(initialPreviousHash);
+        free(initialCurrentHash);
+        free(initialMerklerootHash);
+        free(initialMessage);
     }
 
     void BlockChain::buildSentBlock(char* message) {
@@ -106,16 +112,14 @@ namespace howl {
             _receivedLength++;
         }
 
-        //openSSL::RSA_free(rsa);
-        //openSSL::BIO_free(bp);
-        //free(encryptedBlock);
-        //free(plaintextBlock);
+        openSSL::RSA_free(rsa);
+        openSSL::BIO_free(bp);
+        free(buffer);
+        free(plaintextBlock);
     }
 
     void BlockChain::addPrevSentBlock(char* plaintextBlock) {
 
-        openSSL::RSA*   rsa = NULL;
-        openSSL::BIO*   bp;
         Block*          newBlock;
 
         if(_sentHead == NULL){
@@ -141,9 +145,6 @@ namespace howl {
             _sentHead = newBlock;
             _sentLength++;
         }
-
-        //openSSL::RSA_free(rsa);
-        //openSSL::BIO_free(bp);
     }
 
     char* BlockChain::toString() {
@@ -183,10 +184,10 @@ namespace howl {
         }
         encryptedBlock[RSA_HEX_DIGEST_LENGTH] = '\0';
 
-        //openSSL::RSA_free(rsa);
-        //openSSL::BIO_free(bp);
-        //free(plaintextBlock);
-        //free(buffer);
+        openSSL::RSA_free(rsa);
+        openSSL::BIO_free(bp);
+        free(buffer);
+        free(plaintextBlock);
 
         return encryptedBlock;
     }
@@ -335,10 +336,10 @@ namespace howl {
         BIOtoChar(bp_public, publicKey);
         BIOtoChar(bp_private, privateKey);
 
-        //openSSL::BN_free(e);
-        //openSSL::RSA_free(rsa);
-        //openSSL::BIO_free(bp_private);
-        //openSSL::BIO_free(bp_public);
+        openSSL::BN_free(e);
+        openSSL::RSA_free(rsa);
+        openSSL::BIO_free(bp_private);
+        openSSL::BIO_free(bp_public);
     }
 
     void BlockChain::generateChatId(
@@ -382,9 +383,9 @@ namespace howl {
         }
         (*chatId)[SHA512_HEX_DIGEST_LENGTH] = '\0';
 
-        //free(buffer);
-        //free(salt);
-        //free(ctx);
+        free(buffer);
+        free(salt);
+        free(ctx);
     }
 
     void BlockChain::generateUserId(char** userId, char* localAddress) {
@@ -413,8 +414,20 @@ namespace howl {
         }
         (*userId)[SHA512_HEX_DIGEST_LENGTH] = '\0';
 
-        //free(buffer);
-        //free(ctx);
+        free(buffer);
+        free(ctx);
     }
 
+    void BlockChain::freeBlockChain(BlockChain* blockChain){
+
+        if(blockChain == NULL)
+            return;
+
+        Block::freeBlock(blockChain->_sentHead);
+        Block::freeBlock(blockChain->_receivedHead);
+
+        free(blockChain->_chatId);
+
+        delete(blockChain);
+    }
 }

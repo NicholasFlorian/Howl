@@ -44,23 +44,22 @@ Java_com_teamhowl_howl_utilities_Crypto_generateKeyPair(JNIEnv *env, jclass claz
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_teamhowl_howl_utilities_Crypto_generateChatId(JNIEnv *env, jclass clazz,
-    jstring local_user_id,
-    jstring foreign_user_id) {
+    jstring jLocalUserId,
+    jstring jForeignUserId) {
 
     char* chatId;
     char* localId;
     char* foreignId;
     jstring jChatId;
 
-    localId = const_cast<char *>(env->GetStringUTFChars(local_user_id, 0));
-    foreignId = const_cast<char *>(env->GetStringUTFChars(foreign_user_id, 0));
+    localId = const_cast<char *>(env->GetStringUTFChars(jLocalUserId, 0));
+    foreignId = const_cast<char *>(env->GetStringUTFChars(jForeignUserId, 0));
 
     howl::BlockChain::generateChatId(&chatId, localId, foreignId);
     jChatId = env->NewStringUTF(chatId);
 
-    //free(chatId);
-    //env->ReleaseStringUTFChars(local_user_id, localId);
-    //env->ReleaseStringUTFChars(local_user_id, localId);
+    env->ReleaseStringUTFChars(jLocalUserId, localId);
+    env->ReleaseStringUTFChars(jForeignUserId, foreignId);
 
     return jChatId;
 }
@@ -68,19 +67,18 @@ Java_com_teamhowl_howl_utilities_Crypto_generateChatId(JNIEnv *env, jclass clazz
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_teamhowl_howl_utilities_Crypto_generateUserId(JNIEnv *env, jclass clazz,
-    jstring local_address) {
+    jstring jLocalAddress) {
 
     char* localAddress;
     char* userId;
     jstring jUserId;
 
-    localAddress = const_cast<char *>(env->GetStringUTFChars(local_address, 0));
+    localAddress = const_cast<char *>(env->GetStringUTFChars(jLocalAddress, 0));
 
     howl::BlockChain::generateUserId(&userId, localAddress);
     jUserId = env->NewStringUTF(userId);
 
-    //free(userId);
-    //env->ReleaseStringUTFChars(local_address, localAddress);
+    env->ReleaseStringUTFChars(jLocalAddress, localAddress);
 
     return jUserId;
 }
@@ -125,7 +123,13 @@ Java_com_teamhowl_howl_models_BlockChain_cBuildReceivedMessages(JNIEnv *env, job
                 jBlocks,
                 i,
                 env->NewStringUTF(plaintextBlock));
+
+        env->ReleaseStringUTFChars(jEncryptedBlock, encryptedBlock);
     }
+
+    env->ReleaseStringUTFChars(jChatId, chatId);
+    env->ReleaseStringUTFChars(jPrivateKey, privateKey);
+    howl::BlockChain::freeBlockChain(blockChain);
 
     return jBlocks;
 }
@@ -154,6 +158,8 @@ Java_com_teamhowl_howl_models_BlockChain_cBuildSentMessage(JNIEnv *env, jobject 
                 env->GetStringUTFChars(jPlaintextBlock, 0));
 
         blockChain->addPrevSentBlock(plaintextBlock);
+
+        env->ReleaseStringUTFChars(jPlaintextBlock, plaintextBlock);
     }
 
     char* message = const_cast<char *>(env->GetStringUTFChars(jMessage, 0));
@@ -181,6 +187,11 @@ Java_com_teamhowl_howl_models_BlockChain_cBuildSentMessage(JNIEnv *env, jobject 
             1,
             env->NewStringUTF(encryptedBlock));
 
+    env->ReleaseStringUTFChars(jChatId, chatId);
+    env->ReleaseStringUTFChars(jMessage, message);
+    env->ReleaseStringUTFChars(jPublicKey, publicKey);
+    howl::BlockChain::freeBlockChain(blockChain);
+
     return jBlocks;
 }
 
@@ -196,6 +207,8 @@ Java_com_teamhowl_howl_models_BlockChain_cBuildGenesisBlock(JNIEnv *env, jobject
     char* publicKey = const_cast<char *>(env->GetStringUTFChars(jPublicKey, 0));
     howl::BlockChain* blockChain = new howl::BlockChain(chatId);
 
+
+    free(chatId);
     blockChain->buildGenisisBlock();
     char* plaintextBlock = blockChain->getLastSentBlock()->toJSON();
     char* encryptedBlock = blockChain->getEncryptedBlock(publicKey);
@@ -216,6 +229,9 @@ Java_com_teamhowl_howl_models_BlockChain_cBuildGenesisBlock(JNIEnv *env, jobject
             jBlocks,
             1,
             env->NewStringUTF(encryptedBlock));
+
+    howl::BlockChain::freeBlockChain(blockChain);
+
 
     return jBlocks;
 

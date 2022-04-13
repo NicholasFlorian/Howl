@@ -10,14 +10,18 @@ namespace howl {
             char* message):
 
             _version(index),
-            _previousBlock(previousBlock),
-            _previousHash(previousHash),
-            _message(message) {
+            _previousBlock(previousBlock){
+
+        _previousHash = (char*) malloc(sizeof(char) * (strlen(previousHash) + 1));
+        _message = (char*) malloc(sizeof(char) * (strlen(message) + 1));
+
+        sprintf(_previousHash, "%s", previousHash);
+        sprintf(_message, "%s", message);
 
         _currentHash = nullptr;
         _merklerootHash = nullptr;
         _nonce = 0;
-        _timeSent = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        _timeSent = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         _timeRecieved = 0;
     }
 
@@ -30,26 +34,28 @@ namespace howl {
             char* message):
 
             _version(index),
-            _previousBlock(previousBlock),
-            _previousHash(previousHash),
-            _currentHash(currentHash),
-            _merklerootHash(merklerootHash),
-            _message(message) {
+            _previousBlock(previousBlock){
+
+        _previousHash = (char*) malloc(sizeof(char) * (strlen(previousHash) + 1));
+        _currentHash = (char*) malloc(sizeof(char) * (strlen(currentHash) + 1));
+        _merklerootHash = (char*) malloc(sizeof(char) * (strlen(merklerootHash) + 1));
+        _message = (char*) malloc(sizeof(char) * (strlen(message) + 1));
+
+        sprintf(_previousHash, "%s", previousHash);
+        sprintf(_currentHash, "%s", currentHash);
+        sprintf(_merklerootHash, "%s", merklerootHash);
+        sprintf(_message, "%s", message);
 
         _nonce = 0;
-        _timeSent = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        _timeSent = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         _timeRecieved = 0;
     }
 
     Block::Block(char* plaintextBlock, Block* previousBlock) {
 
-        char* buffer;
-
-        buffer = (char*) malloc(sizeof(char) * 1000);
         _previousHash = (char*) malloc(sizeof(char) * 1000);
         _message = (char*) malloc(sizeof(char) * 1000);
 
-        // TODO int val = Error handle the sscanf results
         sscanf(
                 plaintextBlock,
                 "{\n\t\"version\":%d\n\t\"nonce\":%d\n\t\"previousHash\":\"%[^\"]\"\n\t\"message\":\"%[^\"]\"\n\t\"time\":%ld\n}",
@@ -60,12 +66,10 @@ namespace howl {
                 &_timeSent);
 
         _previousBlock = previousBlock;
-        _timeRecieved = duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        _timeRecieved = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
         _calculateMerklerootHash();
         _calculateHash();
-
-        //free(buffer);
     }
 
     uint32_t Block::getVersion() {
@@ -125,6 +129,12 @@ namespace howl {
 
         bool proofOfWork;
 
+        if(this->_currentHash != NULL)
+            free(this->_currentHash);
+
+        if(this->_merklerootHash != NULL)
+            free(this->_merklerootHash);
+
         _calculateMerklerootHash();
         proofOfWork = false;
         while(!proofOfWork){
@@ -137,7 +147,7 @@ namespace howl {
                 if(_currentHash[i] != '0'){
 
                     proofOfWork = false;
-                    //free(_currentHash);
+                    free(_currentHash);
                     break;
                 }
             }
@@ -189,9 +199,9 @@ namespace howl {
         }
         _currentHash[SHA512_HEX_DIGEST_LENGTH] = '\0';
 
-        //free(buffer);
-        //free(salt);
-        //free(ctx);
+        free(buffer);
+        free(salt);
+        free(ctx);
 
         return 1;
     }
@@ -248,10 +258,32 @@ namespace howl {
         }
         _merklerootHash[SHA512_HEX_DIGEST_LENGTH] = '\0';
 
-        //free(buffer);
-        //free(salt);
-        //free(ctx);
+        free(buffer);
+        free(salt);
+        free(ctx);
 
         return 1;
+    }
+
+    void Block::freeBlock(Block* block){
+
+        if(block == NULL)
+            return;
+
+        freeBlock(block->_previousBlock);
+
+        if(block->_previousHash != NULL)
+            free(block->_previousHash);
+
+        if(block->_currentHash != NULL)
+            free(block->_currentHash);
+
+        if(block->_merklerootHash != NULL)
+            free(block->_merklerootHash);
+
+        if(block->_message != NULL)
+            free(block->_message);
+
+        delete(block);
     }
 }

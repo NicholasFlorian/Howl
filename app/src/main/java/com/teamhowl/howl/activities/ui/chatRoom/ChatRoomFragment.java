@@ -108,9 +108,6 @@ public class ChatRoomFragment extends Fragment {
             ChatRoom chatRoom = new ChatRoom(user);
             chatRoomAdapter.add(chatRoom);
         }
-
-        // TODO remove Mock
-        chatRoomAdapter.add(new ChatRoom(new User("chatId", "userName")));
     }
 
 }
