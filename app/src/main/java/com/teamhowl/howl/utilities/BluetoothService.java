@@ -108,8 +108,6 @@ public class BluetoothService extends Service {
     NotificationChannel notificationChannel;
     NotificationManager notificationManager;
 
-
-
     /** Lifecycle of our service */
     @Override
     public void onCreate() {
@@ -132,6 +130,15 @@ public class BluetoothService extends Service {
         notificationChannel.setDescription(notificationDescription);
         notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.createNotificationChannel(notificationChannel);
+
+        // update preferences?
+        try{
+
+            Settings.attemptFirstTimeSettings(getApplicationContext(), adapter.getName());
+        }
+        catch(SecurityException e){
+            Log.e(TAG, e.getMessage());
+        }
     }
 
     @Override
@@ -655,7 +662,11 @@ public class BluetoothService extends Service {
                         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                         .setContentIntent(pendingIntent)
                         .setAutoCancel(true);
-                        builder.setSilent(isSoft);
+
+                    builder.setSilent(isSoft);
+
+                    if(!Settings.getNotification(getApplicationContext()))
+                        builder.setSilent(false);
 
                     notificationManager.notify(id + userId, builder.build());
 

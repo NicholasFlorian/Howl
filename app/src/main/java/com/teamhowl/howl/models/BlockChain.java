@@ -30,8 +30,6 @@ public class BlockChain {
         System.loadLibrary("howl");
     }
 
-    //private long blockChainPointer;
-    //private boolean hasBlockChain;
     private String chatId;
     private Context context;
     private BlockRoomDatabase blockRoomDatabase;

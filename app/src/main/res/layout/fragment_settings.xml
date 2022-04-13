@@ -7,11 +7,12 @@
     tools:context=".activities.ui.settings.SettingsFragment">
 
     <TextView
-        android:id="@+id/textViewUserId"
+        android:id="@+id/textViewDeviceName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:text="User ID"
+        android:editable="false"
+        android:text="Device Name"
         android:textColor="@android:color/primary_text_light"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,7 +27,7 @@
         android:textColor="@android:color/primary_text_light"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextUserId2" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextDeviceName" />
 
     <TextView
         android:id="@+id/textViewNotifications"
@@ -37,14 +38,15 @@
         android:textColor="@android:color/primary_text_light"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextUserId" />
+        app:layout_constraintTop_toBottomOf="@+id/editTextUserName" />
 
     <EditText
-        android:id="@+id/editTextUserId"
+        android:id="@+id/editTextUserName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:editable="false"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
@@ -55,11 +57,12 @@
         app:layout_constraintTop_toBottomOf="@+id/textViewUserName" />
 
     <EditText
-        android:id="@+id/editTextUserId2"
+        android:id="@+id/editTextDeviceName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:editable="false"
         android:ems="10"
         android:inputType="textPersonName"
         android:text="Name"
@@ -67,7 +70,7 @@
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewUserId" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDeviceName" />
 
     <Switch
         android:id="@+id/switchNotification"
