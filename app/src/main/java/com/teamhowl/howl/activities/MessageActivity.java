@@ -121,14 +121,19 @@ public class MessageActivity extends AppCompatActivity {
         PendingBlockDao pendingBlockDao = blockRoomDatabase.pendingBlockDao();
 
         String text = messageTextView.getText().toString();
-        //TODO SPLIT evenlu every 56 characters START LOOP
+
         if (text.equals(""))
             return;
 
-        PendingBlock block = blockChain.buildSentMessage(text);
-        pendingBlockDao.insert(block);
+        int length = text.length();
+        String piece;
 
-        // TODO END LOOP
+        for (int i = 0; i < length; i += 56) {
+            piece = text.substring(i, Math.min(length, i + 56));
+
+            PendingBlock block = blockChain.buildSentMessage(piece);
+            pendingBlockDao.insert(block);
+        }
 
         messageTextView.setText("");
 
