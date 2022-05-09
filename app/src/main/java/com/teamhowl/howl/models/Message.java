@@ -45,7 +45,7 @@ public class Message implements Comparable<Message> {
         return timeSent;
     }
 
-    public Date getReceived(){
+    public Date getTimeReceived(){
         return timeReceived;
     }
 

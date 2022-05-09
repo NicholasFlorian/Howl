@@ -122,13 +122,28 @@ public class MessageActivity extends AppCompatActivity {
 
         String text = messageTextView.getText().toString();
         //TODO SPLIT evenlu every 56 characters START LOOP
+
+        int j = 0;
+        String currentMessage = "";
+        for(int i = 0; i < text.length(); i++) {
+
+            currentMessage = currentMessage + text.charAt(i);
+
+            if (j == 56 || i == text.length() - 1){
+
+                PendingBlock block = blockChain.buildSentMessage(currentMessage);
+                pendingBlockDao.insert(block);
+
+                currentMessage = "";
+
+                j = 0;
+                continue;
+            }
+            j++;
+        }
         if (text.equals(""))
             return;
 
-        PendingBlock block = blockChain.buildSentMessage(text);
-        pendingBlockDao.insert(block);
-
-        // TODO END LOOP
 
         messageTextView.setText("");
 

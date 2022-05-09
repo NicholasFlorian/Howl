@@ -40,7 +40,6 @@
             android:ems="10"
             android:hint="input your message here"
             android:inputType="textShortMessage"
-            android:maxLength="56"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/buttonSend"
             app:layout_constraintStart_toStartOf="parent"

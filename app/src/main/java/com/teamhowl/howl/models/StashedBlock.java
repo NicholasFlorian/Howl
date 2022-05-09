@@ -23,8 +23,8 @@ public class StashedBlock {
     @ColumnInfo(name = "encrypted_block")
     private String encryptedBlock;
 
-    //@ColumnInfo(name = "time_received")
-    //private Date timeReceived;
+    @ColumnInfo(name = "time_received")
+    private Long timeReceived;
 
 
     public StashedBlock(String chatId, String encryptedBlock) {//, Date timeReceived) {
@@ -32,7 +32,7 @@ public class StashedBlock {
         this.id = id;
         this.chatId = chatId;
         this.encryptedBlock = encryptedBlock;
-        //this.timeReceived = timeReceived;
+        this.timeReceived = (long) 0;
     }
 
     public void setId(int id) {
@@ -41,6 +41,14 @@ public class StashedBlock {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public void setDateTimeReceived(Date timeReceived) {
+        this.timeReceived = timeReceived.getTime();
+    }
+
+    public void setTimeReceived(Long timeReceived){
+        this.timeReceived = timeReceived;
     }
 
     public int getId() {
@@ -59,8 +67,12 @@ public class StashedBlock {
         return encryptedBlock;
     }
 
-    //public Date getTimeReceived() {
-    //    return timeReceived;
-    //}
+    public Date getDateTimeReceived() {
+        return new Date(timeReceived);
+    }
+
+    public long getTimeReceived() {
+        return timeReceived;
+    }
 
 }

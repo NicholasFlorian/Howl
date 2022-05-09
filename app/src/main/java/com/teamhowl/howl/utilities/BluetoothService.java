@@ -38,7 +38,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
@@ -485,6 +487,8 @@ public class BluetoothService extends Service {
                     
                     if(stashedBlockDao.getBlock(response) == null) {
 
+                        stashedBlock.setTimeReceived(Calendar.getInstance().getTimeInMillis());
+
                         if (newMessage == false) {
 
                             sendThreadSafeNotification(
@@ -666,7 +670,7 @@ public class BluetoothService extends Service {
                     builder.setSilent(isSoft);
 
                     if(!Settings.getNotification(getApplicationContext()))
-                        builder.setSilent(false);
+                        builder.setSilent(true);
 
                     notificationManager.notify(id + userId, builder.build());
 

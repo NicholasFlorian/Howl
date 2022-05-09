@@ -114,9 +114,11 @@ public class BlockChain {
         StashedBlockDao stashedBlockDao = blockRoomDatabase.stashedBlockDao();
 
         ArrayList<String> encryptedBlocks = new ArrayList<>();
+        ArrayList<Date> dates = new ArrayList<>();
         for(StashedBlock block : stashedBlockDao.findBlocksByChatId(chatId)){
 
             encryptedBlocks.add(block.getEncryptedBlock());
+            dates.add(block.getDateTimeReceived());
         }
 
         Log.d(TAG_JNI, "cBuildReceivedMessages()");
@@ -145,13 +147,14 @@ public class BlockChain {
                 String message = messageMatcher.group(1);
                 Date date = new Date(Long.parseLong(timeMatcher.group(1)));
 
-                Message newMessage = new Message(message, date, new Date(0));
+                Message newMessage = new Message(message, date, dates.get(i));
                 messages.add(newMessage);
             }
             else {
                 Message newMessage = new Message("FAILED_MESSAGE", new Date(0), new Date(0));
                 messages.add(newMessage);
             }
+            i++;
         }
     }
 

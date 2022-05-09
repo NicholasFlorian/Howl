@@ -13,9 +13,18 @@ import com.teamhowl.howl.models.Message;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Locale;
 
 public class MessageAdapter extends ArrayAdapter<Message> {
+
+    private final static long SECOND = 1;
+    private final static long MINUTE = 60 * SECOND;
+    private final static long HOUR = 60 * MINUTE;
+    private final static long DAY = 24 * HOUR;
+    private final static long MONTH = 30 * DAY;
+    private final static long YEAR = 12 * MONTH;
+
 
     public MessageAdapter(Context context) {
         super(context, 0);
@@ -59,7 +68,7 @@ public class MessageAdapter extends ArrayAdapter<Message> {
                 //receivedTime1.setText("");
 
                 TextView receivedTime2 = convertView.findViewById(R.id.received_time2);
-                //receivedTime2.setText(message.getTimeReceived().toString());
+                receivedTime2.setText("rec: " + parseDate(message.getTimeReceived()));
                 //receivedTime1.setText("");
             }
             else {
@@ -83,10 +92,21 @@ public class MessageAdapter extends ArrayAdapter<Message> {
 
     public static String parseDate(Date date){
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("hh_mm_ss", Locale.US);
+        long timeSent = date.getTime();
+        long currentTime = Calendar.getInstance().getTimeInMillis();
+        long delta = currentTime - timeSent;
 
-        String time = dateFormat.format(date);
-        return time;
+        delta = delta / 1000;
+        if(delta < MINUTE)
+            return "now";
+        else if(delta < HOUR)
+            return (delta / MINUTE) + " minutes";
+        else if(delta < DAY)
+            return (delta / HOUR) + " minutes";
+        else if(delta < YEAR)
+            return (delta / DAY) + " minutes";
+        else
+            return (delta / YEAR) + " years";
     }
 
 }
